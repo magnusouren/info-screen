@@ -5,6 +5,10 @@ import type { PricesResponse, PricesData } from "@/lib/types/prices";
 
 let cache: { data: PricesData; fetchedAt: number } | null = null;
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour
+const CACHE_HEADERS = {
+  "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=600",
+};
+const ERROR_HEADERS = { "Cache-Control": "no-store" };
 
 async function fetchPrices(year: string, month: string, day: string) {
   const area = config.electricity.priceArea;
@@ -16,7 +20,7 @@ async function fetchPrices(year: string, month: string, day: string) {
 
 export async function GET() {
   if (cache && Date.now() - cache.fetchedAt < CACHE_TTL) {
-    return NextResponse.json(cache.data);
+    return NextResponse.json(cache.data, { headers: CACHE_HEADERS });
   }
 
   try {
@@ -44,9 +48,12 @@ export async function GET() {
     };
 
     cache = { data, fetchedAt: Date.now() };
-    return NextResponse.json(data);
+    return NextResponse.json(data, { headers: CACHE_HEADERS });
   } catch {
-    if (cache) return NextResponse.json(cache.data);
-    return NextResponse.json({ error: "Kunne ikke hente strømpris" }, { status: 503 });
+    if (cache) return NextResponse.json(cache.data, { headers: CACHE_HEADERS });
+    return NextResponse.json(
+      { error: "Kunne ikke hente strømpris" },
+      { status: 503, headers: ERROR_HEADERS }
+    );
   }
 }

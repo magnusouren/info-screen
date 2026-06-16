@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { config } from "@/lib/config";
 import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
+import { userAgent } from "@/lib/env";
 import type { WeatherResponse, WeatherData } from "@/lib/types/weather";
 import type { SunriseResponse, SunriseData } from "@/lib/types/sunrise";
 import type { PricesResponse, PricesData } from "@/lib/types/prices";
@@ -26,7 +27,7 @@ async function fetchWeather(): Promise<WeatherData | null> {
     const { lat, lon } = config.location;
     const res = await fetchWithTimeout(
       `https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${lat}&lon=${lon}`,
-      { headers: { "User-Agent": `infoskjerm/1.0 ${config.metContact}` } }
+      { headers: { "User-Agent": userAgent } }
     );
     if (!res.ok) throw new Error();
     const raw: WeatherResponse = await res.json();
@@ -78,7 +79,7 @@ async function fetchSunrise(): Promise<SunriseData | null> {
     const today = new Date().toISOString().split("T")[0];
     const res = await fetchWithTimeout(
       `https://api.met.no/weatherapi/sunrise/3.0/sun?lat=${lat}&lon=${lon}&date=${today}&offset=+01:00`,
-      { headers: { "User-Agent": `infoskjerm/1.0 ${config.metContact}` } }
+      { headers: { "User-Agent": userAgent } }
     );
     if (!res.ok) throw new Error();
     const raw: SunriseResponse = await res.json();
@@ -230,17 +231,16 @@ function parseRSS(xml: string): NewsData {
       block.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/) ??
       block.match(/<title>(.*?)<\/title>/);
     const linkMatch = block.match(/<link>(.*?)<\/link>/);
-    const pubDateMatch = block.match(/<pubDate>(.*?)<\/pubDate>/);
     if (titleMatch && linkMatch) {
       items.push({
         title: titleMatch[1].trim(),
-        link: linkMatch[1].trim(),
-        pubDate: pubDateMatch ? pubDateMatch[1].trim() : "",
+        url: linkMatch[1].trim(),
+        canFetchFull: false,
       });
     }
     if (items.length >= 6) break;
   }
-  return { items };
+  return { items, source: "nrk" };
 }
 
 async function fetchNews(): Promise<NewsData | null> {
@@ -272,5 +272,8 @@ export async function GET() {
     fetchNews(),
   ]);
 
-  return NextResponse.json({ weather, sunrise, prices, bus, news } satisfies DashboardData);
+  return NextResponse.json(
+    { weather, sunrise, prices, bus, news } satisfies DashboardData,
+    { headers: { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=60" } }
+  );
 }

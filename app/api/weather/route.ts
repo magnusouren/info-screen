@@ -1,13 +1,16 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { config } from "@/lib/config";
 import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
+import { userAgent } from "@/lib/env";
 import type { WeatherResponse, WeatherData } from "@/lib/types/weather";
 
 const weatherCache = new Map<string, { data: WeatherData; fetchedAt: number }>();
 const nameCache = new Map<string, string>();
 const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
-
-const userAgent = `infoskjerm/1.0 ${config.metContact}`;
+const CACHE_HEADERS = {
+  "Cache-Control": "public, s-maxage=600, stale-while-revalidate=300",
+};
+const ERROR_HEADERS = { "Cache-Control": "no-store" };
 
 function parseCoord(raw: string | null): number | null {
   if (!raw) return null;
@@ -64,7 +67,7 @@ export async function GET(request: NextRequest) {
   const key = coordKey(lat, lon);
   const cached = weatherCache.get(key);
   if (cached && Date.now() - cached.fetchedAt < CACHE_TTL) {
-    return NextResponse.json(cached.data);
+    return NextResponse.json(cached.data, { headers: CACHE_HEADERS });
   }
 
   try {
@@ -126,9 +129,12 @@ export async function GET(request: NextRequest) {
     };
 
     weatherCache.set(key, { data, fetchedAt: Date.now() });
-    return NextResponse.json(data);
+    return NextResponse.json(data, { headers: CACHE_HEADERS });
   } catch {
-    if (cached) return NextResponse.json(cached.data);
-    return NextResponse.json({ error: "Kunne ikke hente værdata" }, { status: 503 });
+    if (cached) return NextResponse.json(cached.data, { headers: CACHE_HEADERS });
+    return NextResponse.json(
+      { error: "Kunne ikke hente værdata" },
+      { status: 503, headers: ERROR_HEADERS }
+    );
   }
 }

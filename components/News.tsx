@@ -1,48 +1,69 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Newspaper } from "@phosphor-icons/react";
-import type { NewsData } from "@/lib/types/news";
+import { useRef, useState } from "react";
+import type { NewsItem } from "@/lib/types/news";
+import NewsFeed from "./NewsFeed";
+import ArticleModal from "./ArticleModal";
+
+const PAGES: { key: string; category: string | null; title: string }[] = [
+  { key: "latest", category: null, title: "Siste" },
+  { key: "sport", category: "sport", title: "Sport" },
+];
 
 export default function News() {
-  const [data, setData] = useState<NewsData | null>(null);
-  const [error, setError] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [page, setPage] = useState(0);
+  const [openItem, setOpenItem] = useState<NewsItem | null>(null);
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await fetch("/api/news");
-        if (!res.ok) throw new Error();
-        setData(await res.json());
-        setError(false);
-      } catch {
-        setError(true);
-      }
-    };
-    load();
-    const id = setInterval(load, 5 * 60 * 1000);
-    return () => clearInterval(id);
-  }, []);
+  const goTo = (i: number) => {
+    const el = containerRef.current;
+    if (!el) return;
+    el.scrollTo({ left: i * el.clientWidth, behavior: "smooth" });
+  };
 
   return (
-    <div>
-      <div className="flex items-center gap-2 text-xs text-text-3 uppercase tracking-widest mb-2">
-        <Newspaper size={13} weight="light" />
-        NRK Nyheter
-      </div>
-      {!data ? (
-        <div className="text-text-5 text-sm animate-pulse">
-          {error ? "Nyheter utilgjengelig" : "Laster nyheter…"}
+    <>
+      <div className="h-full flex flex-col min-h-0">
+        <div className="flex justify-end gap-1.5 mb-1 shrink-0">
+          {PAGES.map((_, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => goTo(i)}
+              aria-label={`Vis side ${i + 1}`}
+              className={`h-1.5 rounded-full transition-all ${
+                i === page ? "w-4 bg-text-3" : "w-1.5 bg-text-5"
+              }`}
+            />
+          ))}
         </div>
-      ) : (
-        <div className="space-y-2">
-          {data.items.map((item, i) => (
-            <div key={i} className="text-text-2 text-sm font-light leading-snug border-l border-border pl-3">
-              {item.title}
+        <div
+          ref={containerRef}
+          onScroll={(e) => {
+            const el = e.currentTarget;
+            const w = el.clientWidth || 1;
+            const i = Math.round(el.scrollLeft / w);
+            if (i !== page) setPage(i);
+          }}
+          className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide flex-1 min-h-0"
+        >
+          {PAGES.map((p) => (
+            <div
+              key={p.key}
+              className="snap-start shrink-0 w-full overflow-y-auto pr-px"
+            >
+              <NewsFeed
+                category={p.category}
+                title={p.title}
+                onOpen={setOpenItem}
+              />
             </div>
           ))}
         </div>
+      </div>
+      {openItem && (
+        <ArticleModal item={openItem} onClose={() => setOpenItem(null)} />
       )}
-    </div>
+    </>
   );
 }

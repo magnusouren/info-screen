@@ -1,6 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { fetchStop } from "@/lib/entur";
 
+const CACHE_HEADERS = {
+  "Cache-Control": "public, s-maxage=20, stale-while-revalidate=30",
+};
+const ERROR_HEADERS = { "Cache-Control": "no-store" };
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ stopId: string }> }
@@ -15,8 +20,8 @@ export async function GET(
   if (!stop) {
     return NextResponse.json(
       { error: "Kunne ikke hente avganger for stoppestedet" },
-      { status: 503 }
+      { status: 503, headers: ERROR_HEADERS }
     );
   }
-  return NextResponse.json(stop);
+  return NextResponse.json(stop, { headers: CACHE_HEADERS });
 }

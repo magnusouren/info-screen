@@ -1,10 +1,15 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { config } from "@/lib/config";
 import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
+import { userAgent } from "@/lib/env";
 import type { SunriseResponse, SunriseData } from "@/lib/types/sunrise";
 
 const cache = new Map<string, { data: SunriseData; fetchedAt: number }>();
 const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_HEADERS = {
+  "Cache-Control": "public, s-maxage=21600, stale-while-revalidate=3600",
+};
+const ERROR_HEADERS = { "Cache-Control": "no-store" };
 
 function parseCoord(raw: string | null): number | null {
   if (!raw) return null;
@@ -27,13 +32,13 @@ export async function GET(request: NextRequest) {
   const cacheKey = key(lat, lon, today);
   const cached = cache.get(cacheKey);
   if (cached && Date.now() - cached.fetchedAt < CACHE_TTL) {
-    return NextResponse.json(cached.data);
+    return NextResponse.json(cached.data, { headers: CACHE_HEADERS });
   }
 
   try {
     const url = `https://api.met.no/weatherapi/sunrise/3.0/sun?lat=${lat}&lon=${lon}&date=${today}&offset=+01:00`;
     const res = await fetchWithTimeout(url, {
-      headers: { "User-Agent": `infoskjerm/1.0 ${config.metContact}` },
+      headers: { "User-Agent": userAgent },
     });
     if (!res.ok) throw new Error(`Sunrise API ${res.status}`);
 
@@ -51,9 +56,12 @@ export async function GET(request: NextRequest) {
     };
 
     cache.set(cacheKey, { data, fetchedAt: Date.now() });
-    return NextResponse.json(data);
+    return NextResponse.json(data, { headers: CACHE_HEADERS });
   } catch {
-    if (cached) return NextResponse.json(cached.data);
-    return NextResponse.json({ error: "Kunne ikke hente soldata" }, { status: 503 });
+    if (cached) return NextResponse.json(cached.data, { headers: CACHE_HEADERS });
+    return NextResponse.json(
+      { error: "Kunne ikke hente soldata" },
+      { status: 503, headers: ERROR_HEADERS }
+    );
   }
 }

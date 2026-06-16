@@ -27,9 +27,17 @@ export const config = {
         priceArea: 'NO1',
     },
 
-    // Kontaktinfo brukt i User-Agent-header mot api.met.no
-    // Bytt til din egen e-post per api.met.no sine retningslinjer
-    metContact: 'magnut0203@gmail.com',
+    // Fotball: følg disse landslagene / klubbene (TheSportsDB team-ID).
+    // Sikrer at kampene deres alltid kommer med, selv når TheSportsDBs
+    // eventsday-feed er ufullstendig for store turneringer.
+    // Finn ID-en på: https://www.thesportsdb.com/team.php?t=<lagnavn>
+    football: {
+        followTeamIds: [
+            '136516', // Norge (herrer)
+            '134574', // Vålerenga
+            '133602', // Liverpool
+        ],
+    },
 } as const;
 
 export type Config = typeof config;
