@@ -25,6 +25,15 @@ export interface WeatherResponse {
   };
 }
 
+export interface HourlyWeather {
+  time: string;
+  hour: string;
+  symbolCode: string;
+  temperature: number;
+  windSpeed: number;
+  precipitation: number;
+}
+
 export interface WeatherData {
   temperature: number;
   symbolCode: string;
@@ -32,4 +41,5 @@ export interface WeatherData {
   humidity: number;
   precipitation: { hour: string; amount: number }[];
   locationName: string;
+  hourly: HourlyWeather[];
 }

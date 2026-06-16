@@ -83,20 +83,33 @@ export async function GET(request: NextRequest) {
       "cloudy";
 
     const now = new Date();
-    const next10 = timeseries
-      .filter((t) => {
-        const time = new Date(t.time);
-        const hoursAhead = (time.getTime() - now.getTime()) / 3600000;
-        return hoursAhead >= 0 && hoursAhead <= 10;
-      })
-      .slice(0, 10)
+    const fmtHour = (iso: string) =>
+      new Date(iso).toLocaleTimeString("no-NO", {
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "Europe/Oslo",
+      });
+
+    const upcoming = timeseries.filter((t) => {
+      const hoursAhead = (new Date(t.time).getTime() - now.getTime()) / 3600000;
+      return hoursAhead >= 0 && hoursAhead <= 24;
+    });
+
+    const next10 = upcoming.slice(0, 10).map((t) => ({
+      hour: fmtHour(t.time),
+      amount: t.data.next_1_hours?.details.precipitation_amount ?? 0,
+    }));
+
+    const hourly = upcoming
+      .filter((t) => t.data.next_1_hours)
+      .slice(0, 24)
       .map((t) => ({
-        hour: new Date(t.time).toLocaleTimeString("no-NO", {
-          hour: "2-digit",
-          minute: "2-digit",
-          timeZone: "Europe/Oslo",
-        }),
-        amount: t.data.next_1_hours?.details.precipitation_amount ?? 0,
+        time: t.time,
+        hour: fmtHour(t.time),
+        symbolCode: t.data.next_1_hours?.summary.symbol_code ?? "cloudy",
+        temperature: Math.round(t.data.instant.details.air_temperature),
+        windSpeed: Math.round(t.data.instant.details.wind_speed),
+        precipitation: t.data.next_1_hours?.details.precipitation_amount ?? 0,
       }));
 
     const geocoded = usingDefault ? null : await reverseGeocode(lat, lon);
@@ -109,6 +122,7 @@ export async function GET(request: NextRequest) {
       humidity: Math.round(details.relative_humidity),
       precipitation: next10,
       locationName,
+      hourly,
     };
 
     weatherCache.set(key, { data, fetchedAt: Date.now() });

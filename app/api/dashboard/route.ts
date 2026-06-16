@@ -59,6 +59,7 @@ async function fetchWeather(): Promise<WeatherData | null> {
       humidity: Math.round(det.relative_humidity),
       precipitation,
       locationName: config.location.name,
+      hourly: [],
     };
     cache.weather = { data, at: Date.now() };
     return data;

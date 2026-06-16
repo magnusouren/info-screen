@@ -21,7 +21,7 @@ export default class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.error) {
       return (
-        <div className="text-zinc-700 text-xs">
+        <div className="text-text-5 text-xs">
           {this.props.label} utilgjengelig
         </div>
       );

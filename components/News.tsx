@@ -26,18 +26,18 @@ export default function News() {
 
   return (
     <div>
-      <div className="flex items-center gap-2 text-xs text-zinc-500 uppercase tracking-widest mb-2">
+      <div className="flex items-center gap-2 text-xs text-text-3 uppercase tracking-widest mb-2">
         <Newspaper size={13} weight="light" />
         NRK Nyheter
       </div>
       {!data ? (
-        <div className="text-zinc-700 text-sm animate-pulse">
+        <div className="text-text-5 text-sm animate-pulse">
           {error ? "Nyheter utilgjengelig" : "Laster nyheter…"}
         </div>
       ) : (
         <div className="space-y-2">
           {data.items.map((item, i) => (
-            <div key={i} className="text-zinc-400 text-sm font-light leading-snug border-l border-zinc-800 pl-3">
+            <div key={i} className="text-text-2 text-sm font-light leading-snug border-l border-border pl-3">
               {item.title}
             </div>
           ))}

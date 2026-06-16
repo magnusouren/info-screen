@@ -1,53 +1,89 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  BarChart, Bar, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer,
-} from "recharts";
-import { Lightning } from "@phosphor-icons/react";
+import { Lightning, TrendDown, TrendUp, Equals, Lightbulb } from "@phosphor-icons/react";
 import type { PricesData, HourlyPrice } from "@/lib/types/prices";
+import { config } from "@/lib/config";
+import PriceChartModal from "./PriceChartModal";
 
-function buildChartData(prices: HourlyPrice[], cheapCount = 4) {
-  const sorted = [...prices].sort((a, b) => a.NOK_per_kWh - b.NOK_per_kWh);
-  const cheapThreshold = sorted[cheapCount - 1]?.NOK_per_kWh ?? 0;
-  return prices.map((p) => ({
-    hour: new Date(p.time_start).toLocaleTimeString("no-NO", {
-      hour: "2-digit", minute: "2-digit", timeZone: "Europe/Oslo",
-    }),
-    price: Math.round(p.NOK_per_kWh * 100),
-    cheap: p.NOK_per_kWh <= cheapThreshold,
-  }));
+const oslo = (iso: string) =>
+  new Date(iso).toLocaleTimeString("no-NO", {
+    hour: "2-digit",
+    timeZone: "Europe/Oslo",
+  });
+
+const toOre = (nok: number) => Math.round(nok * 100);
+
+function summarize(prices: HourlyPrice[]) {
+  let min = prices[0];
+  let max = prices[0];
+  let sum = 0;
+  for (const p of prices) {
+    if (p.NOK_per_kWh < min.NOK_per_kWh) min = p;
+    if (p.NOK_per_kWh > max.NOK_per_kWh) max = p;
+    sum += p.NOK_per_kWh;
+  }
+  return {
+    avg: toOre(sum / prices.length),
+    min: { ore: toOre(min.NOK_per_kWh), hour: oslo(min.time_start) },
+    max: { ore: toOre(max.NOK_per_kWh), hour: oslo(max.time_start) },
+  };
 }
 
-interface TooltipProps { active?: boolean; payload?: { value: number }[]; label?: string; }
-function CustomTooltip({ active, payload, label }: TooltipProps) {
-  if (!active || !payload?.length) return null;
-  return (
-    <div className="bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-xs text-zinc-300">
-      <div className="font-medium">{label}</div>
-      <div>{payload[0].value} øre/kWh</div>
-    </div>
+function buildTip(
+  today: HourlyPrice[],
+  tomorrow: HourlyPrice[] | null,
+  now: Date
+): { text: string; ore: number } | null {
+  const merged = [...today, ...(tomorrow ?? [])];
+  const upcoming = merged.filter(
+    (p) => new Date(p.time_end).getTime() > now.getTime()
   );
+  if (upcoming.length === 0) return null;
+
+  let cheapest = upcoming[0];
+  for (const p of upcoming) {
+    if (p.NOK_per_kWh < cheapest.NOK_per_kWh) cheapest = p;
+  }
+
+  const start = new Date(cheapest.time_start);
+  const ore = toOre(cheapest.NOK_per_kWh);
+  const hour = oslo(cheapest.time_start);
+  const hoursAway = Math.round((start.getTime() - now.getTime()) / 3600000);
+
+  if (hoursAway <= 0) return { text: "Strømmen er billig nå", ore };
+  if (hoursAway === 1) return { text: `Billigst om 1 time (kl. ${hour})`, ore };
+  if (hoursAway <= 6)
+    return { text: `Billigst om ${hoursAway} timer (kl. ${hour})`, ore };
+
+  const sameDay =
+    start.toLocaleDateString("no-NO", { timeZone: "Europe/Oslo" }) ===
+    now.toLocaleDateString("no-NO", { timeZone: "Europe/Oslo" });
+  const dayHint = sameDay ? "" : "i morgen ";
+  return { text: `Billigst ${dayHint}kl. ${hour}`, ore };
 }
 
-function PriceChart({ prices, label }: { prices: HourlyPrice[]; label: string }) {
-  const data = buildChartData(prices);
-  const currentHour = new Date().getHours();
+function Row({
+  icon,
+  label,
+  value,
+  hour,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: number;
+  hour?: string;
+}) {
   return (
-    <div>
-      <div className="text-xs text-zinc-500 uppercase tracking-widest mb-1">{label}</div>
-      <ResponsiveContainer width="100%" height={80}>
-        <BarChart data={data} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
-          <XAxis dataKey="hour" tick={{ fill: "#52525b", fontSize: 9 }} tickLine={false} axisLine={false} interval={3} />
-          <YAxis hide />
-          <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
-          <Bar dataKey="price" radius={[2, 2, 0, 0]}>
-            {data.map((entry, index) => (
-              <Cell key={index} fill={index === currentHour && label === "I dag" ? "#a1a1aa" : entry.cheap ? "#4a5568" : "#27272a"} />
-            ))}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
+    <div className="flex items-baseline gap-3">
+      <div className="flex items-center gap-2 text-text-3 text-sm font-light w-20">
+        <span className="text-text-4">{icon}</span>
+        {label}
+      </div>
+      <div className="text-text-2 text-2xl font-thin tabular-nums">{value}</div>
+      <div className="text-text-4 text-xs">
+        øre/kWh{hour ? ` · kl. ${hour}` : ""}
+      </div>
     </div>
   );
 }
@@ -55,6 +91,7 @@ function PriceChart({ prices, label }: { prices: HourlyPrice[]; label: string })
 export default function ElectricityPrice() {
   const [data, setData] = useState<PricesData | null>(null);
   const [error, setError] = useState(false);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -73,32 +110,89 @@ export default function ElectricityPrice() {
   }, []);
 
   const currentPrice = data?.today
-    ? Math.round((data.today[new Date().getHours()]?.NOK_per_kWh ?? 0) * 100)
+    ? toOre(data.today[new Date().getHours()]?.NOK_per_kWh ?? 0)
     : null;
 
+  const today = data?.today ? summarize(data.today) : null;
+  const tip = data?.today ? buildTip(data.today, data.tomorrow, new Date()) : null;
+
+  const clickable = !!data;
+
   return (
-    <div>
-      <div className="flex items-center gap-3 mb-2">
-        <div className="flex items-center gap-2 text-xs text-zinc-500 uppercase tracking-widest">
+    <>
+      <button
+        type="button"
+        onClick={() => clickable && setOpen(true)}
+        disabled={!clickable}
+        className="text-left w-full rounded-lg -mx-2 -my-1 px-2 py-1 enabled:cursor-pointer enabled:hover:bg-surface/40 transition-colors"
+        aria-label="Vis strømprisgraf"
+      >
+        <div className="flex items-center gap-2 text-xs text-text-3 uppercase tracking-widest mb-3">
           <Lightning size={13} weight="light" />
           Strøm
         </div>
-        {currentPrice !== null && (
-          <div className="text-zinc-300 text-sm tabular-nums">
-            {currentPrice} <span className="text-zinc-600 text-xs">øre/kWh nå</span>
+
+        {!data ? (
+          <div className="text-text-5 text-sm animate-pulse">
+            {error ? "Strømpris utilgjengelig" : "Laster priser…"}
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {currentPrice !== null && (
+              <div>
+                <div className="text-text-3 text-xs uppercase tracking-widest">Nå</div>
+                <div className="flex items-baseline gap-2 mt-1">
+                  <span className="text-5xl font-thin text-text tabular-nums">
+                    {currentPrice}
+                  </span>
+                  <span className="text-text-3 text-sm">øre/kWh</span>
+                </div>
+              </div>
+            )}
+
+            {today && (
+              <div className="space-y-2 pt-1">
+                <Row
+                  icon={<Equals size={12} weight="light" />}
+                  label="Snitt"
+                  value={today.avg}
+                />
+                <Row
+                  icon={<TrendDown size={12} weight="light" />}
+                  label="Lavest"
+                  value={today.min.ore}
+                  hour={today.min.hour}
+                />
+                <Row
+                  icon={<TrendUp size={12} weight="light" />}
+                  label="Høyest"
+                  value={today.max.ore}
+                  hour={today.max.hour}
+                />
+              </div>
+            )}
+
+            {tip && (
+              <div className="flex items-center gap-2 text-accent/80 text-sm font-light pt-1">
+                <Lightbulb size={14} weight="light" />
+                <span>
+                  {tip.text}
+                  <span className="text-accent/50 text-xs ml-1.5 tabular-nums">
+                    {tip.ore} øre
+                  </span>
+                </span>
+              </div>
+            )}
           </div>
         )}
-      </div>
-      {!data ? (
-        <div className="text-zinc-700 text-sm animate-pulse">
-          {error ? "Strømpris utilgjengelig" : "Laster priser…"}
-        </div>
-      ) : (
-        <div className="space-y-3">
-          <PriceChart prices={data.today} label="I dag" />
-          {data.tomorrow && <PriceChart prices={data.tomorrow} label="I morgen" />}
-        </div>
+      </button>
+      {open && data && (
+        <PriceChartModal
+          data={data}
+          priceArea={config.electricity.priceArea}
+          onClose={() => setOpen(false)}
+        />
       )}
-    </div>
+    </>
   );
 }

@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import WorldClockModal from "./WorldClockModal";
 
 export default function Clock() {
   const [time, setTime] = useState("--:--");
   const [date, setDate] = useState(" ");
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     const tick = () => {
@@ -30,13 +32,21 @@ export default function Clock() {
   }, []);
 
   return (
-    <div>
-      <div className="text-8xl font-thin tracking-tight text-white leading-none tabular-nums">
-        {time}
-      </div>
-      <div className="mt-2 text-lg text-zinc-400 font-light tracking-wide">
-        {date}
-      </div>
-    </div>
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="text-left cursor-pointer rounded-lg -mx-2 -my-1 px-2 py-1 hover:bg-surface/40 transition-colors"
+        aria-label="Vis verdensklokke"
+      >
+        <div className="text-8xl font-thin tracking-tight text-text leading-none tabular-nums">
+          {time}
+        </div>
+        <div className="mt-2 text-lg text-text-3 font-light tracking-wide">
+          {date}
+        </div>
+      </button>
+      {open && <WorldClockModal onClose={() => setOpen(false)} />}
+    </>
   );
 }

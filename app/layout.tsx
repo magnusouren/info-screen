@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
 import WakeLock from "@/components/WakeLock";
+import ThemeToggle from "@/components/ThemeToggle";
+import { STORAGE_KEY, THEMES, DEFAULT_THEME } from "@/lib/theme";
 
 const geist = Geist({ subsets: ["latin"] });
 
@@ -25,16 +27,36 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
+const themeBootstrap = `
+(function () {
+  try {
+    var t = localStorage.getItem(${JSON.stringify(STORAGE_KEY)});
+    var allowed = ${JSON.stringify(THEMES)};
+    if (allowed.indexOf(t) === -1) t = ${JSON.stringify(DEFAULT_THEME)};
+    document.documentElement.dataset.theme = t;
+  } catch (e) {
+    document.documentElement.dataset.theme = ${JSON.stringify(DEFAULT_THEME)};
+  }
+})();
+`;
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="no">
-      <body className={`${geist.className} bg-zinc-950 text-white antialiased`}>
+    <html lang="no" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeBootstrap }} />
+      </head>
+      <body
+        className={`${geist.className} bg-bg text-text antialiased`}
+        suppressHydrationWarning
+      >
         <WakeLock />
         {children}
+        <ThemeToggle />
       </body>
     </html>
   );

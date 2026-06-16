@@ -1,5 +1,75 @@
 @import "tailwindcss";
 
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-text: var(--text);
+  --color-text-2: var(--text-2);
+  --color-text-3: var(--text-3);
+  --color-text-4: var(--text-4);
+  --color-text-5: var(--text-5);
+  --color-accent: var(--accent);
+  --color-highlight: var(--highlight);
+  --color-live: var(--live);
+}
+
+/* Dark (default) */
+:root {
+  --bg: #09090b;
+  --surface: #18181b;
+  --surface-2: #27272a;
+  --border: #27272a;
+  --border-strong: #3f3f46;
+  --text: #ffffff;
+  --text-2: #e4e4e7;
+  --text-3: #71717a;
+  --text-4: #52525b;
+  --text-5: #3f3f46;
+  --accent: #34d399;
+  --highlight: #fafafa;
+  --live: #f87171;
+}
+
+[data-theme="light"] {
+  --bg: #fafafa;
+  --surface: #ffffff;
+  --surface-2: #f4f4f5;
+  --border: #e4e4e7;
+  --border-strong: #d4d4d8;
+  --text: #18181b;
+  --text-2: #27272a;
+  --text-3: #52525b;
+  --text-4: #71717a;
+  --text-5: #a1a1aa;
+  --accent: #059669;
+  --highlight: #18181b;
+  --live: #dc2626;
+}
+
+/* Night = dark palette, dimmed via filter */
+[data-theme="night"] body {
+  filter: brightness(0.5);
+}
+
+[data-theme="sepia"] {
+  --bg: #f3e9cf;
+  --surface: #ebdfb6;
+  --surface-2: #ddcd95;
+  --border: #c9b577;
+  --border-strong: #ad9456;
+  --text: #2a1d09;
+  --text-2: #4a3413;
+  --text-3: #6e4f23;
+  --text-4: #8c6a3a;
+  --text-5: #b08e5d;
+  --accent: #8b4513;
+  --highlight: #2a1d09;
+  --live: #b91c1c;
+}
+
 * {
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
@@ -9,5 +79,5 @@
 html, body {
   height: 100%;
   overflow: hidden;
-  background: #09090b; /* zinc-950 */
+  background: var(--bg);
 }
