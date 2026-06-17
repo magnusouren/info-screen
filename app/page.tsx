@@ -9,6 +9,7 @@ import Football from "@/components/Football";
 import Calendar from "@/components/Calendar";
 import Currency from "@/components/Currency";
 import Inside from "@/components/Inside";
+import Scenes from "@/components/Scenes";
 
 export default function Page() {
   return (
@@ -33,6 +34,12 @@ export default function Page() {
         <div className="flex flex-col gap-2 justify-center pt-2 flex-none">
           <ErrorBoundary label="Inne">
             <Inside />
+          </ErrorBoundary>
+        </div>
+
+        <div className="ml-auto pt-2 flex-none">
+          <ErrorBoundary label="Scener">
+            <Scenes />
           </ErrorBoundary>
         </div>
       </div>
