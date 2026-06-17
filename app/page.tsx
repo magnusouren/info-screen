@@ -6,6 +6,9 @@ import News from "@/components/News";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import ElectricityPriceClient from "@/components/ElectricityPriceClient";
 import Football from "@/components/Football";
+import Calendar from "@/components/Calendar";
+import Currency from "@/components/Currency";
+import Inside from "@/components/Inside";
 
 export default function Page() {
   return (
@@ -26,6 +29,12 @@ export default function Page() {
             <Sunrise />
           </ErrorBoundary>
         </div>
+
+        <div className="flex flex-col gap-2 justify-center pt-2 flex-none">
+          <ErrorBoundary label="Inne">
+            <Inside />
+          </ErrorBoundary>
+        </div>
       </div>
 
       {/* Divider */}
@@ -42,6 +51,10 @@ export default function Page() {
         <div className="w-px bg-border shrink-0" />
 
         <div className="flex-1 overflow-hidden flex flex-col gap-6">
+          <ErrorBoundary label="Kalender">
+            <Calendar />
+          </ErrorBoundary>
+          <div className="border-t border-border" />
           <ErrorBoundary label="Strømpris">
             <ElectricityPriceClient />
           </ErrorBoundary>
@@ -53,10 +66,18 @@ export default function Page() {
 
         <div className="w-px bg-border shrink-0" />
 
-        <div className="w-80 shrink-0 overflow-hidden">
-          <ErrorBoundary label="Nyheter">
-            <News />
-          </ErrorBoundary>
+        <div className="w-80 shrink-0 overflow-hidden flex flex-col gap-6">
+          <div className="flex-1 min-h-0">
+            <ErrorBoundary label="Nyheter">
+              <News />
+            </ErrorBoundary>
+          </div>
+          <div className="border-t border-border shrink-0" />
+          <div className="shrink-0">
+            <ErrorBoundary label="Valuta">
+              <Currency />
+            </ErrorBoundary>
+          </div>
         </div>
       </div>
     </main>

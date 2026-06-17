@@ -27,6 +27,27 @@ export const config = {
         priceArea: 'NO1',
     },
 
+    // Kalender (iCal-feed). Legg til så mange kilder du vil.
+    // For Google Calendar: Innstillinger → Integrer kalender →
+    //   "Hemmelig adresse i iCal-format". Lagre URL-en i .env.local under
+    //   nøkkelen du oppgir i envKey under (f.eks. CALENDAR_URL_PRIVATE).
+    calendar: {
+        sources: [
+            {
+                name: 'Privat',
+                envKey: 'CALENDAR_URL_PRIVATE',
+                color: '#7aa2f7',
+            },
+            {
+                name: 'Familie',
+                envKey: 'CALENDAR_URL_FAMILY',
+                color: '#f7d87a',
+            },
+        ],
+        daysAhead: 14,
+        maxEvents: 6,
+    },
+
     // Fotball: følg disse landslagene / klubbene (TheSportsDB team-ID).
     // Sikrer at kampene deres alltid kommer med, selv når TheSportsDBs
     // eventsday-feed er ufullstendig for store turneringer.

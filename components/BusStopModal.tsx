@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X, Bus } from "@phosphor-icons/react";
+import { XIcon as X, BusIcon as Bus } from "@phosphor-icons/react";
 import type { StopDepartures } from "@/lib/types/bus";
 
 export default function BusStopModal({
@@ -60,12 +60,9 @@ export default function BusStopModal({
       >
         <div className="flex items-start justify-between p-5 border-b border-border">
           <div>
-            <div className="flex items-center gap-1 text-text-3 text-xs font-light">
-              <Bus size={11} weight="light" />
+            <div className="flex items-center gap-1 text-text-3  font-light">
+              <Bus size={20} weight="light" />
               <span>{data?.stopName ?? stopName}</span>
-            </div>
-            <div className="text-text-2 text-sm font-light mt-0.5">
-              Neste 20 avganger
             </div>
           </div>
           <button

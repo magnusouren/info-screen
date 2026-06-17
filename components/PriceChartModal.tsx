@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { X, Lightning } from "@phosphor-icons/react";
+import { XIcon as X, LightningIcon as Lightning } from "@phosphor-icons/react";
 import type { PricesData, HourlyPrice } from "@/lib/types/prices";
 
 const W = 400;

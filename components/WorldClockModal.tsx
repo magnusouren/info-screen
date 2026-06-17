@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X, GlobeHemisphereWest } from "@phosphor-icons/react";
+import {
+  XIcon as X,
+  GlobeHemisphereWestIcon as GlobeHemisphereWest,
+} from "@phosphor-icons/react";
 
 const ZONES: { city: string; tz: string }[] = [
   { city: "Los Angeles", tz: "America/Los_Angeles" },

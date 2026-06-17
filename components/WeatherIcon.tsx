@@ -1,16 +1,16 @@
 "use client";
 
 import {
-  Sun,
-  Moon,
-  Cloud,
-  CloudSun,
-  CloudMoon,
-  CloudRain,
-  CloudLightning,
-  CloudSnow,
-  CloudFog,
-  Drop,
+  SunIcon as Sun,
+  MoonIcon as Moon,
+  CloudIcon as Cloud,
+  CloudSunIcon as CloudSun,
+  CloudMoonIcon as CloudMoon,
+  CloudRainIcon as CloudRain,
+  CloudLightningIcon as CloudLightning,
+  CloudSnowIcon as CloudSnow,
+  CloudFogIcon as CloudFog,
+  DropIcon as Drop,
 } from "@phosphor-icons/react";
 import type { Icon } from "@phosphor-icons/react";
 

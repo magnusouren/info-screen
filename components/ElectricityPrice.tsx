@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Lightning, TrendDown, TrendUp, Equals, Lightbulb } from "@phosphor-icons/react";
+import {
+  LightningIcon as Lightning,
+  TrendDownIcon as TrendDown,
+  TrendUpIcon as TrendUp,
+  EqualsIcon as Equals,
+  LightbulbIcon as Lightbulb,
+} from "@phosphor-icons/react";
 import type { PricesData, HourlyPrice } from "@/lib/types/prices";
 import { config } from "@/lib/config";
 import PriceChartModal from "./PriceChartModal";
@@ -63,26 +69,38 @@ function buildTip(
   return { text: `Billigst ${dayHint}kl. ${hour}`, ore };
 }
 
-function Row({
+function Stat({
   icon,
   label,
   value,
   hour,
+  emphasis,
 }: {
   icon: React.ReactNode;
   label: string;
   value: number;
   hour?: string;
+  emphasis?: boolean;
 }) {
   return (
-    <div className="flex items-baseline gap-3">
-      <div className="flex items-center gap-2 text-text-3 text-sm font-light w-20">
+    <div className="min-w-0">
+      <div
+        className={`flex items-center gap-1 text-[11px] uppercase tracking-wider ${
+          emphasis ? "text-text-2" : "text-text-3"
+        }`}
+      >
         <span className="text-text-4">{icon}</span>
         {label}
       </div>
-      <div className="text-text-2 text-2xl font-thin tabular-nums">{value}</div>
-      <div className="text-text-4 text-xs">
-        øre/kWh{hour ? ` · kl. ${hour}` : ""}
+      <div
+        className={`font-thin tabular-nums leading-tight mt-0.5 ${
+          emphasis ? "text-text text-3xl" : "text-text-2 text-xl"
+        }`}
+      >
+        {value}
+      </div>
+      <div className="text-text-4 text-[11px] h-4">
+        {hour ? `kl. ${hour}` : ""}
       </div>
     </div>
   );
@@ -137,33 +155,27 @@ export default function ElectricityPrice() {
             {error ? "Strømpris utilgjengelig" : "Laster priser…"}
           </div>
         ) : (
-          <div className="space-y-4">
-            {currentPrice !== null && (
-              <div>
-                <div className="text-text-3 text-xs uppercase tracking-widest">Nå</div>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <span className="text-5xl font-thin text-text tabular-nums">
-                    {currentPrice}
-                  </span>
-                  <span className="text-text-3 text-sm">øre/kWh</span>
-                </div>
-              </div>
-            )}
-
+          <div className="space-y-3">
             {today && (
-              <div className="space-y-2 pt-1">
-                <Row
+              <div className="grid grid-cols-4 gap-3 items-end">
+                <Stat
+                  icon={<Lightning size={12} weight="light" />}
+                  label="Nå"
+                  value={currentPrice ?? today.avg}
+                  emphasis
+                />
+                <Stat
                   icon={<Equals size={12} weight="light" />}
                   label="Snitt"
                   value={today.avg}
                 />
-                <Row
+                <Stat
                   icon={<TrendDown size={12} weight="light" />}
                   label="Lavest"
                   value={today.min.ore}
                   hour={today.min.hour}
                 />
-                <Row
+                <Stat
                   icon={<TrendUp size={12} weight="light" />}
                   label="Høyest"
                   value={today.max.ore}
@@ -173,7 +185,7 @@ export default function ElectricityPrice() {
             )}
 
             {tip && (
-              <div className="flex items-center gap-2 text-accent/80 text-sm font-light pt-1">
+              <div className="flex items-center gap-2 text-accent/80 text-sm font-light">
                 <Lightbulb size={14} weight="light" />
                 <span>
                   {tip.text}

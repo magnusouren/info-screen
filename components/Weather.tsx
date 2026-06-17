@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Wind, Drop, MapPin } from "@phosphor-icons/react";
+import {
+  WindIcon as Wind,
+  DropIcon as Drop,
+  MapPinIcon as MapPin,
+} from "@phosphor-icons/react";
 import WeatherIcon from "./WeatherIcon";
 import WeatherDetailsModal from "./WeatherDetailsModal";
 import type { WeatherData } from "@/lib/types/weather";

@@ -1,30 +1,30 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { SoccerBall } from "@phosphor-icons/react";
+import { SoccerBallIcon as SoccerBall } from "@phosphor-icons/react";
 import type { FootballData, FootballMatch } from "@/lib/types/football";
 
 function StatusBadge({ match }: { match: FootballMatch }) {
   const s = match.status;
   if (s === "notStarted") {
     return (
-      <span className="text-text-3 text-xs tabular-nums">
+      <span className="text-text-3 text-xs tabular-nums shrink-0">
         {match.kickoff ?? "—"}
       </span>
     );
   }
   if (s === "finished") {
-    return <span className="text-text-4 text-xs">Slutt</span>;
+    return <span className="text-text-4 text-xs shrink-0">Slutt</span>;
   }
   if (s === "inprogress" || s === "live" || s === "playing") {
     return (
-      <span className="text-live text-xs font-medium tabular-nums">
+      <span className="text-live text-xs font-medium tabular-nums shrink-0">
         {match.statusDetail || "LIVE"}
       </span>
     );
   }
   return (
-    <span className="text-text-3 text-xs tabular-nums">
+    <span className="text-text-3 text-xs tabular-nums shrink-0">
       {match.statusDetail || "—"}
     </span>
   );
@@ -43,7 +43,10 @@ function Score({ match }: { match: FootballMatch }) {
 
 function MatchRow({ match }: { match: FootballMatch }) {
   return (
-    <div className="grid grid-cols-[1fr_auto_1fr_auto] items-baseline gap-2 py-1">
+    <div className="grid grid-cols-[auto_1fr_auto_1fr_auto] items-baseline gap-2 py-1">
+      <span className="invisible" aria-hidden="true">
+        <StatusBadge match={match} />
+      </span>
       <div className="text-text-2 text-sm font-light truncate text-right">
         {match.home}
       </div>
@@ -51,9 +54,7 @@ function MatchRow({ match }: { match: FootballMatch }) {
       <div className="text-text-2 text-sm font-light truncate">
         {match.away}
       </div>
-      <div className="justify-self-end">
-        <StatusBadge match={match} />
-      </div>
+      <StatusBadge match={match} />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { SunHorizon } from "@phosphor-icons/react";
+import { SunHorizonIcon as SunHorizon } from "@phosphor-icons/react";
 import type { SunriseData } from "@/lib/types/sunrise";
 import { getCoords, type Coords } from "@/lib/geolocation";
 

@@ -58,16 +58,20 @@ function deriveStatus(
   if (raw === "ns" || raw === "not started" || raw === "tbd") {
     return { status: "notStarted", statusDetail: "" };
   }
-  if (raw === "1h" || raw === "2h" || raw === "ht" || raw === "et" || raw.includes("live")) {
-    return { status: "live", statusDetail: apiStatus ?? "LIVE" };
-  }
+
+  if (raw === "1h") return { status: "live", statusDetail: "1. omgang" };
+  if (raw === "2h") return { status: "live", statusDetail: "2. omgang" };
+  if (raw === "ht") return { status: "live", statusDetail: "Pause" };
+  if (raw === "et") return { status: "live", statusDetail: "Ekstraomgang" };
+  if (raw.includes("live")) return { status: "live", statusDetail: "LIVE" };
 
   const minutesSinceStart = (Date.now() - startUTC.getTime()) / 60000;
   if (minutesSinceStart < 0) return { status: "notStarted", statusDetail: "" };
   if (minutesSinceStart > 150) return { status: "finished", statusDetail: "Slutt" };
   if (hasScore) {
-    const mins = Math.min(Math.round(minutesSinceStart), 90);
-    return { status: "live", statusDetail: `${mins}'` };
+    if (minutesSinceStart < 50) return { status: "live", statusDetail: "1. omgang" };
+    if (minutesSinceStart < 65) return { status: "live", statusDetail: "Pause" };
+    return { status: "live", statusDetail: "2. omgang" };
   }
   return { status: "notStarted", statusDetail: "" };
 }
@@ -105,6 +109,18 @@ async function fetchTeamNext(teamId: string): Promise<SportsDbEvent[]> {
   }
 }
 
+async function fetchTeamLast(teamId: string): Promise<SportsDbEvent[]> {
+  const url = `https://www.thesportsdb.com/api/v1/json/3/eventslast.php?id=${teamId}`;
+  try {
+    const res = await fetchWithTimeout(url, {}, 15000);
+    if (!res.ok) return [];
+    const raw = (await res.json()) as { results?: SportsDbEvent[] | null };
+    return raw.results ?? [];
+  } catch {
+    return [];
+  }
+}
+
 export async function GET() {
   if (cache && Date.now() - cache.fetchedAt < CACHE_TTL) {
     return NextResponse.json(cache.data, { headers: CACHE_HEADERS });
@@ -116,19 +132,23 @@ export async function GET() {
     const tomorrowDate = new Date(now);
     tomorrowDate.setUTCDate(tomorrowDate.getUTCDate() + 1);
     const tomorrowOslo = osloDateOf(tomorrowDate);
+    const yesterdayDate = new Date(now);
+    yesterdayDate.setUTCDate(yesterdayDate.getUTCDate() - 1);
 
     const todayUTC = now.toISOString().split("T")[0];
     const tomorrowUTC = tomorrowDate.toISOString().split("T")[0];
+    const yesterdayUTC = yesterdayDate.toISOString().split("T")[0];
 
     const teamIds = config.football?.followTeamIds ?? [];
-    const [evsToday, evsTomorrow, ...evsTeams] = await Promise.all([
+    const [evsYesterday, evsToday, evsTomorrow, ...evsTeams] = await Promise.all([
+      fetchEventsDay(yesterdayUTC),
       fetchEventsDay(todayUTC),
       fetchEventsDay(tomorrowUTC),
-      ...teamIds.map((id) => fetchTeamNext(id)),
+      ...teamIds.flatMap((id) => [fetchTeamNext(id), fetchTeamLast(id)]),
     ]);
 
     const byId = new Map<string, SportsDbEvent>();
-    for (const e of [...evsToday, ...evsTomorrow, ...evsTeams.flat()]) {
+    for (const e of [...evsYesterday, ...evsToday, ...evsTomorrow, ...evsTeams.flat()]) {
       if (e.idEvent) byId.set(e.idEvent, e);
     }
 

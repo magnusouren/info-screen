@@ -6,7 +6,6 @@ import type { WeatherResponse, WeatherData } from "@/lib/types/weather";
 import type { SunriseResponse, SunriseData } from "@/lib/types/sunrise";
 import type { PricesResponse, PricesData } from "@/lib/types/prices";
 import type { StopPlaceResponse, BusData, StopDepartures } from "@/lib/types/bus";
-import type { NewsData } from "@/lib/types/news";
 
 import type { DashboardData } from "@/lib/types/dashboard";
 
@@ -15,8 +14,7 @@ const cache: {
   weather: { data: WeatherData; at: number } | null;
   sunrise: { data: SunriseData; at: number } | null;
   prices: { data: PricesData; at: number } | null;
-  news: { data: NewsData; at: number } | null;
-} = { weather: null, sunrise: null, prices: null, news: null };
+} = { weather: null, sunrise: null, prices: null };
 
 // ─── Weather ────────────────────────────────────────────────────────────────
 
@@ -219,61 +217,19 @@ async function fetchBus(): Promise<BusData | null> {
   return data.length > 0 ? data : null;
 }
 
-// ─── News ───────────────────────────────────────────────────────────────────
-
-function parseRSS(xml: string): NewsData {
-  const items: NewsData["items"] = [];
-  const itemRegex = /<item>([\s\S]*?)<\/item>/g;
-  let match;
-  while ((match = itemRegex.exec(xml)) !== null) {
-    const block = match[1];
-    const titleMatch =
-      block.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/) ??
-      block.match(/<title>(.*?)<\/title>/);
-    const linkMatch = block.match(/<link>(.*?)<\/link>/);
-    if (titleMatch && linkMatch) {
-      items.push({
-        title: titleMatch[1].trim(),
-        url: linkMatch[1].trim(),
-        canFetchFull: false,
-      });
-    }
-    if (items.length >= 6) break;
-  }
-  return { items, source: "nrk" };
-}
-
-async function fetchNews(): Promise<NewsData | null> {
-  if (cache.news && Date.now() - cache.news.at < 5 * 60 * 1000)
-    return cache.news.data;
-  try {
-    const res = await fetchWithTimeout("https://www.nrk.no/toppsaker.rss", {
-      headers: { "User-Agent": "infoskjerm/1.0" },
-    });
-    if (!res.ok) throw new Error();
-    const xml = await res.text();
-    const data = parseRSS(xml);
-    cache.news = { data, at: Date.now() };
-    return data;
-  } catch {
-    return cache.news?.data ?? null;
-  }
-}
-
 // ─── Combined endpoint ───────────────────────────────────────────────────────
 
 export async function GET() {
   // Fetch all in parallel — each has its own timeout and fallback
-  const [weather, sunrise, prices, bus, news] = await Promise.all([
+  const [weather, sunrise, prices, bus] = await Promise.all([
     fetchWeather(),
     fetchSunrise(),
     fetchPrices(),
     fetchBus(),
-    fetchNews(),
   ]);
 
   return NextResponse.json(
-    { weather, sunrise, prices, bus, news } satisfies DashboardData,
+    { weather, sunrise, prices, bus } satisfies DashboardData,
     { headers: { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=60" } }
   );
 }
