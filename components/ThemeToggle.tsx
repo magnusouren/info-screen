@@ -66,6 +66,13 @@ export default function ThemeToggle() {
     };
 
     const onDown = (e: PointerEvent) => {
+      const target = e.target;
+      if (
+        target instanceof Element &&
+        target.closest("[data-no-long-press]")
+      ) {
+        return;
+      }
       startX = e.clientX;
       startY = e.clientY;
       clearTimer();
