@@ -1,30 +1,68 @@
 import { NextResponse, type NextRequest } from "next/server";
-import type { Scene, ScenesData } from "@/lib/types/scenes";
+import { config } from "@/lib/config";
+import { smartThingsToken } from "@/lib/env";
+import type { Scene, SceneIcon, ScenesData } from "@/lib/types/scenes";
 
-// Mock state inntil ekte smarthus-integrasjon er på plass.
-// Når Home Assistant / Hue / lignende kobles til:
-//   - Bytt SCENES med scenene fra det aktuelle systemet (eller hent dem dynamisk)
-//   - I GET/POST: les/skriv mot det systemets API i stedet for variabelen state.
-// Klienten leser /api/scenes og endrer ingenting.
-const SCENES: Scene[] = [
-  { id: "av", name: "Av", icon: "power" },
-  { id: "daglys", name: "Daglys", icon: "lightbulb" },
-  { id: "kveld", name: "Kveld", icon: "moonstars" },
-  { id: "film", name: "Film", icon: "filmreel" },
-  { id: "vasking", name: "Vasking", icon: "broom" },
-  { id: "middag", name: "Middag", icon: "forkknife" },
-];
+const API_BASE = "https://api.smartthings.com/v1";
+const DEFAULT_ICON: SceneIcon = "power";
+const CACHE_TTL = 60 * 1000;
 
-const state: { activeId: string | null } = { activeId: null };
+function toIcon(name: string): SceneIcon {
+  const mapped = config.smartThings.sceneIcons[name];
+  return (mapped as SceneIcon | undefined) ?? DEFAULT_ICON;
+}
+
+let cachedScenes: { scenes: Scene[]; at: number } | null = null;
+let activeId: string | null = null;
+
+async function fetchScenes(): Promise<Scene[]> {
+  const res = await fetch(`${API_BASE}/scenes`, {
+    headers: { Authorization: `Bearer ${smartThingsToken}` },
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error(`SmartThings svarte ${res.status}`);
+  const json = (await res.json()) as {
+    items?: { sceneId: string; sceneName: string }[];
+  };
+  return (json.items ?? []).map((item) => ({
+    id: item.sceneId,
+    name: item.sceneName,
+    icon: toIcon(item.sceneName),
+  }));
+}
 
 export async function GET() {
-  const data: ScenesData = { scenes: SCENES, activeId: state.activeId };
-  return NextResponse.json(data, {
-    headers: { "Cache-Control": "no-store" },
-  });
+  if (!smartThingsToken) {
+    return NextResponse.json(
+      { error: "SMARTTHINGS_TOKEN er ikke satt" },
+      { status: 503, headers: { "Cache-Control": "no-store" } }
+    );
+  }
+
+  try {
+    if (!cachedScenes || Date.now() - cachedScenes.at > CACHE_TTL) {
+      cachedScenes = { scenes: await fetchScenes(), at: Date.now() };
+    }
+    const data: ScenesData = { scenes: cachedScenes.scenes, activeId };
+    return NextResponse.json(data, {
+      headers: { "Cache-Control": "no-store" },
+    });
+  } catch {
+    return NextResponse.json(
+      { error: "Kunne ikke hente scener fra SmartThings" },
+      { status: 502, headers: { "Cache-Control": "no-store" } }
+    );
+  }
 }
 
 export async function POST(request: NextRequest) {
+  if (!smartThingsToken) {
+    return NextResponse.json(
+      { error: "SMARTTHINGS_TOKEN er ikke satt" },
+      { status: 503 }
+    );
+  }
+
   let body: { id?: string | null };
   try {
     body = await request.json();
@@ -33,11 +71,25 @@ export async function POST(request: NextRequest) {
   }
 
   const requestedId = body?.id ?? null;
-  if (requestedId !== null && !SCENES.some((s) => s.id === requestedId)) {
+  const scenes = cachedScenes?.scenes ?? [];
+  if (requestedId !== null && !scenes.some((s) => s.id === requestedId)) {
     return NextResponse.json({ error: "Ukjent scene" }, { status: 400 });
   }
 
-  state.activeId = requestedId;
-  const data: ScenesData = { scenes: SCENES, activeId: state.activeId };
-  return NextResponse.json(data);
+  if (requestedId) {
+    const res = await fetch(`${API_BASE}/scenes/${requestedId}/execute`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${smartThingsToken}` },
+    });
+    if (!res.ok) {
+      return NextResponse.json(
+        { error: "Kunne ikke aktivere scenen" },
+        { status: 502 }
+      );
+    }
+  }
+
+  activeId = requestedId;
+  const data: ScenesData = { scenes, activeId };
+  return NextResponse.json(data, { headers: { "Cache-Control": "no-store" } });
 }

@@ -8,6 +8,7 @@ import ElectricityPriceClient from "@/components/ElectricityPriceClient";
 import Calendar from "@/components/Calendar";
 import Currency from "@/components/Currency";
 import Countdown from "@/components/Countdown";
+import Scenes from "@/components/Scenes";
 
 export default function Page() {
   return (
@@ -56,6 +57,10 @@ export default function Page() {
           <div className="border-t border-border" />
           <ErrorBoundary label="Strømpris">
             <ElectricityPriceClient />
+          </ErrorBoundary>
+          <div className="border-t border-border" />
+          <ErrorBoundary label="Scener">
+            <Scenes />
           </ErrorBoundary>
         </div>
 

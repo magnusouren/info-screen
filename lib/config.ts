@@ -47,6 +47,24 @@ export const config = {
         daysAhead: 14,
         maxEvents: 6,
     },
+
+    // SmartThings (smarthjem-scener). Personal Access Token lages på
+    // https://account.smartthings.com/tokens med scopes r:scenes:* og x:scenes:*.
+    // Lagre den i .env.local under SMARTTHINGS_TOKEN.
+    smartThings: {
+        // Valgfri mapping fra scene-navn (slik det er skrevet i SmartThings-appen)
+        // til ikon i UI-et. Scener uten mapping her får standardikonet.
+        sceneIcons: {
+            'Se på TV': 'filmreel',
+            'God natt': 'moonstars',
+            'God morgen': 'lightbulb',
+            'Legge seg': 'moonstars',
+            Borte: 'power',
+            'Alt på': 'lightbulb',
+            'Rolig belysning': 'lightbulb',
+            Hjemme: 'power',
+        } as Record<string, string>,
+    },
 } as const;
 
 export type Config = typeof config;
