@@ -55,10 +55,6 @@ export default function Page() {
             <Calendar />
           </ErrorBoundary>
           <div className="border-t border-border" />
-          <ErrorBoundary label="Strømpris">
-            <ElectricityPriceClient />
-          </ErrorBoundary>
-          <div className="border-t border-border" />
           <ErrorBoundary label="Scener">
             <Scenes />
           </ErrorBoundary>
@@ -70,6 +66,12 @@ export default function Page() {
           <div className="flex-1 min-h-0">
             <ErrorBoundary label="Nyheter">
               <News />
+            </ErrorBoundary>
+          </div>
+          <div className="border-t border-border shrink-0" />
+          <div className="shrink-0">
+            <ErrorBoundary label="Strømpris">
+              <ElectricityPriceClient />
             </ErrorBoundary>
           </div>
           <div className="border-t border-border shrink-0" />

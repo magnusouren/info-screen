@@ -3,9 +3,6 @@
 import { useEffect, useState } from "react";
 import {
   LightningIcon as Lightning,
-  TrendDownIcon as TrendDown,
-  TrendUpIcon as TrendUp,
-  EqualsIcon as Equals,
   LightbulbIcon as Lightbulb,
 } from "@phosphor-icons/react";
 import type { PricesData, HourlyPrice } from "@/lib/types/prices";
@@ -69,40 +66,13 @@ function buildTip(
   return { text: `Billigst ${dayHint}kl. ${hour}`, ore };
 }
 
-function Stat({
-  icon,
-  label,
-  value,
-  hour,
-  emphasis,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: number;
-  hour?: string;
-  emphasis?: boolean;
-}) {
+function Row({ label, value }: { label: string; value: number }) {
   return (
-    <div className="min-w-0">
-      <div
-        className={`flex items-center gap-1 text-[11px] uppercase tracking-wider ${
-          emphasis ? "text-text-2" : "text-text-3"
-        }`}
-      >
-        <span className="text-text-4">{icon}</span>
-        {label}
-      </div>
-      <div
-        className={`font-thin tabular-nums leading-tight mt-0.5 ${
-          emphasis ? "text-text text-3xl" : "text-text-2 text-xl"
-        }`}
-      >
-        {value}
-      </div>
-      <div className="text-text-4 text-[11px] h-4">
-        {hour ? `kl. ${hour}` : ""}
-      </div>
-    </div>
+    <li className="flex items-baseline gap-2 text-sm font-light">
+      <span className="text-text-3 w-14">{label}</span>
+      <span className="text-text-2 tabular-nums ml-auto">{value}</span>
+      <span className="text-text-4 text-xs">øre</span>
+    </li>
   );
 }
 
@@ -145,7 +115,7 @@ export default function ElectricityPrice() {
         className="text-left w-full rounded-lg -mx-2 -my-1 px-2 py-1 enabled:cursor-pointer enabled:hover:bg-surface/40 transition-colors"
         aria-label="Vis strømprisgraf"
       >
-        <div className="flex items-center gap-2 text-xs text-text-3 uppercase tracking-widest mb-3">
+        <div className="flex items-center gap-2 text-xs text-text-3 uppercase tracking-widest mb-2">
           <Lightning size={13} weight="light" />
           Strøm
         </div>
@@ -155,47 +125,28 @@ export default function ElectricityPrice() {
             {error ? "Strømpris utilgjengelig" : "Laster priser…"}
           </div>
         ) : (
-          <div className="space-y-3">
+          <>
             {today && (
-              <div className="grid grid-cols-4 gap-3 items-end">
-                <Stat
-                  icon={<Lightning size={12} weight="light" />}
-                  label="Nå"
-                  value={currentPrice ?? today.avg}
-                  emphasis
-                />
-                <Stat
-                  icon={<Equals size={12} weight="light" />}
-                  label="Snitt"
-                  value={today.avg}
-                />
-                <Stat
-                  icon={<TrendDown size={12} weight="light" />}
-                  label="Lavest"
-                  value={today.min.ore}
-                  hour={today.min.hour}
-                />
-                <Stat
-                  icon={<TrendUp size={12} weight="light" />}
-                  label="Høyest"
-                  value={today.max.ore}
-                  hour={today.max.hour}
-                />
-              </div>
+              <ul className="space-y-1">
+                <Row label="Nå" value={currentPrice ?? today.avg} />
+                <Row label="Snitt" value={today.avg} />
+                <Row label="Lavest" value={today.min.ore} />
+                <Row label="Høyest" value={today.max.ore} />
+              </ul>
             )}
 
             {tip && (
-              <div className="flex items-center gap-2 text-accent/80 text-sm font-light">
-                <Lightbulb size={14} weight="light" />
+              <div className="flex items-center gap-1.5 text-accent/80 text-xs font-light mt-2">
+                <Lightbulb size={12} weight="light" />
                 <span>
                   {tip.text}
-                  <span className="text-accent/50 text-xs ml-1.5 tabular-nums">
+                  <span className="text-accent/50 ml-1 tabular-nums">
                     {tip.ore} øre
                   </span>
                 </span>
               </div>
             )}
-          </div>
+          </>
         )}
       </button>
       {open && data && (

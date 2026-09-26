@@ -99,32 +99,34 @@ export default function Calendar() {
       ) : data.events.length === 0 ? (
         <div className="text-text-4 text-sm font-light">Ingen hendelser</div>
       ) : (
-        <ul className="space-y-2 overflow-y-auto overflow-x-hidden flex-1 min-h-0 pr-1">
+        <div className="flex gap-4 overflow-x-auto overflow-y-hidden flex-1 min-h-0 pb-1">
           {groups.map((g) => (
-            <li key={g.label}>
-              <div className="text-text-3 text-[11px] uppercase tracking-wider mb-1">
+            <div key={g.label} className="min-w-[120px] flex-1">
+              <div className="text-text-3 text-[11px] uppercase tracking-wider mb-1.5 truncate">
                 {g.label}
               </div>
-              <ul className="space-y-1">
+              <ul className="space-y-2">
                 {g.events.map((e, i) => (
-                  <li key={i} className="flex items-baseline gap-2 min-w-0">
-                    <span
-                      className="inline-block w-1.5 h-1.5 rounded-full shrink-0 translate-y-[-1px]"
-                      style={{ backgroundColor: e.color ?? "var(--color-text-4)" }}
-                      aria-hidden
-                    />
-                    <span className="text-text-3 text-xs font-light tabular-nums w-24 shrink-0">
-                      {timeLabel(e)}
-                    </span>
-                    <span className="text-text-2 text-sm font-light truncate">
+                  <li key={i} className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className="inline-block w-1.5 h-1.5 rounded-full shrink-0"
+                        style={{ backgroundColor: e.color ?? "var(--color-text-4)" }}
+                        aria-hidden
+                      />
+                      <span className="text-text-3 text-[11px] font-light tabular-nums">
+                        {timeLabel(e)}
+                      </span>
+                    </div>
+                    <div className="text-text-2 text-sm font-light truncate pl-3">
                       {e.title}
-                    </span>
+                    </div>
                   </li>
                 ))}
               </ul>
-            </li>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   );
