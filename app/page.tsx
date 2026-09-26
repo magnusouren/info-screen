@@ -5,7 +5,6 @@ import BusDepartures from "@/components/BusDepartures";
 import News from "@/components/News";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import ElectricityPriceClient from "@/components/ElectricityPriceClient";
-import Football from "@/components/Football";
 import Calendar from "@/components/Calendar";
 import Currency from "@/components/Currency";
 import Countdown from "@/components/Countdown";
@@ -57,10 +56,6 @@ export default function Page() {
           <div className="border-t border-border" />
           <ErrorBoundary label="Strømpris">
             <ElectricityPriceClient />
-          </ErrorBoundary>
-          <div className="border-t border-border" />
-          <ErrorBoundary label="Fotball">
-            <Football />
           </ErrorBoundary>
         </div>
 

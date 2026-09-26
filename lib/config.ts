@@ -47,18 +47,6 @@ export const config = {
         daysAhead: 14,
         maxEvents: 6,
     },
-
-    // Fotball: følg disse landslagene / klubbene (TheSportsDB team-ID).
-    // Sikrer at kampene deres alltid kommer med, selv når TheSportsDBs
-    // eventsday-feed er ufullstendig for store turneringer.
-    // Finn ID-en på: https://www.thesportsdb.com/team.php?t=<lagnavn>
-    football: {
-        followTeamIds: [
-            '136516', // Norge (herrer)
-            '134574', // Vålerenga
-            '133602', // Liverpool
-        ],
-    },
 } as const;
 
 export type Config = typeof config;
