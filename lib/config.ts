@@ -45,9 +45,8 @@ export const config = {
         maxEvents: 6,
     },
 
-    // SmartThings (smarthjem-scener). Personal Access Token lages på
-    // https://account.smartthings.com/tokens med scopes r:scenes:* og x:scenes:*.
-    // Lagre den i .env.local under SMARTTHINGS_TOKEN.
+    // SmartThings (smarthjem-scener). Kobles til via en egen OAuth-In SmartApp
+    // (opprettet med `smartthings apps:create`) — se lib/smartthingsAuth.ts.
     smartThings: {
         // Valgfri mapping fra scene-navn (slik det er skrevet i SmartThings-appen)
         // til ikon i UI-et. Scener uten mapping her får standardikonet.
