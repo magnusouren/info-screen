@@ -40,12 +40,12 @@ export default function Sunrise() {
   if (!data) return null;
 
   return (
-    <div className="flex gap-4 text-text-3 text-sm font-light items-center">
+    <div className="flex items-center gap-2">
       <span className="flex items-center gap-1">
-        <SunHorizon size={14} weight="light" />{data.sunrise}
+        <SunHorizon size={11} weight="light" />{data.sunrise}
       </span>
       <span className="flex items-center gap-1 opacity-60">
-        <SunHorizon size={14} weight="light" className="rotate-180" />{data.sunset}
+        <SunHorizon size={11} weight="light" className="rotate-180" />{data.sunset}
       </span>
     </div>
   );

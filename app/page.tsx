@@ -7,7 +7,6 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import LightsQuickControl from "@/components/LightsQuickControl";
 import News from "@/components/News";
 import Scenes from "@/components/Scenes";
-import Sunrise from "@/components/Sunrise";
 import Weather from "@/components/Weather";
 
 export default function Page() {
@@ -23,12 +22,9 @@ export default function Page() {
 
 				<div className="border-t border-border sm:border-t-0 sm:bg-border" />
 
-				<div className="min-w-0 flex flex-col gap-2">
+				<div className="min-w-0">
 					<ErrorBoundary label="Vær">
 						<Weather />
-					</ErrorBoundary>
-					<ErrorBoundary label="Sol">
-						<Sunrise />
 					</ErrorBoundary>
 				</div>
 
