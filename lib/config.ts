@@ -13,8 +13,7 @@ export const config = {
     // Finn din stopp-ID på: https://stoppested.entur.org/
     // Legg til flere objekter for å vise flere stopp.
     bus: {
-        stops: [
-        ],
+        stops: [] as { stopId: string; maxDepartures: number }[],
     },
 
     // Strømprisområde
