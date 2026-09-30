@@ -40,7 +40,7 @@ export default function NewsFeed({
   }, [category]);
 
   return (
-    <div className="flex flex-col h-full min-h-0 w-full">
+    <div className="flex flex-col sm:h-full sm:min-h-0 w-full">
       <div className="flex items-center gap-2 text-xs text-text-3 uppercase tracking-widest mb-2 shrink-0">
         <Newspaper size={13} weight="light" />
         {title}
@@ -50,7 +50,7 @@ export default function NewsFeed({
           {error ? "Nyheter utilgjengelig" : "Laster nyheter…"}
         </div>
       ) : (
-        <ul className="divide-y divide-border/60 overflow-y-auto overflow-x-hidden flex-1 min-h-0 pr-1">
+        <ul className="divide-y divide-border/60 overflow-x-hidden sm:overflow-y-auto sm:flex-1 sm:min-h-0 pr-1">
           {data.items.map((item, i) => (
             <li key={i} className="px-2 py-2 -mx-2">
               <div className="text-text-2 text-sm font-light leading-snug">

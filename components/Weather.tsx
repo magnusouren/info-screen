@@ -104,8 +104,8 @@ export default function Weather() {
           <span>{data.locationName}</span>
         </div>
         <div className="mt-1 flex items-center gap-3">
-          <WeatherIcon symbolCode={data.symbolCode} size={44} className="text-text-2" />
-          <span className="text-5xl font-thin text-text tabular-nums">{data.temperature}°</span>
+          <WeatherIcon symbolCode={data.symbolCode} size={44} className="text-text-2 shrink-0" />
+          <span className="text-[clamp(1.875rem,4vw,3rem)] font-thin text-text tabular-nums">{data.temperature}°</span>
         </div>
         <div className="mt-1 flex gap-4 text-text-3 text-sm font-light items-center">
           <span className="flex items-center gap-1"><Wind size={13} weight="light" />{data.windSpeed} m/s</span>

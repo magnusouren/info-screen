@@ -88,3 +88,11 @@ html, body {
   overflow: hidden;
   background: var(--bg);
 }
+
+@media (max-width: 639.98px) {
+  html, body {
+    height: auto;
+    min-height: 100%;
+    overflow-y: auto;
+  }
+}

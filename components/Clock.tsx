@@ -39,10 +39,10 @@ export default function Clock() {
         className="text-left cursor-pointer rounded-lg -mx-2 -my-1 px-2 py-1 hover:bg-surface/40 transition-colors"
         aria-label="Vis verdensklokke"
       >
-        <div className="text-8xl font-thin tracking-tight text-text leading-none tabular-nums">
+        <div className="text-[clamp(2.75rem,7vw,6rem)] font-thin tracking-tight text-text leading-none tabular-nums">
           {time}
         </div>
-        <div className="mt-2 text-lg text-text-3 font-light tracking-wide">
+        <div className="mt-2 text-[clamp(0.9rem,1.6vw,1.125rem)] text-text-3 font-light tracking-wide">
           {date}
         </div>
       </button>

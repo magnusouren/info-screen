@@ -1,11 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { config } from "@/lib/config";
-import { smartThingsToken } from "@/lib/env";
+import { getAccessToken } from "@/lib/smartthingsAuth";
 import type { Scene, SceneIcon, ScenesData } from "@/lib/types/scenes";
 
 const API_BASE = "https://api.smartthings.com/v1";
 const DEFAULT_ICON: SceneIcon = "power";
 const CACHE_TTL = 60 * 1000;
+const CONNECT_URL = "/api/smartthings/authorize";
 
 function toIcon(name: string): SceneIcon {
   const mapped = config.smartThings.sceneIcons[name];
@@ -15,9 +16,9 @@ function toIcon(name: string): SceneIcon {
 let cachedScenes: { scenes: Scene[]; at: number } | null = null;
 let activeId: string | null = null;
 
-async function fetchScenes(): Promise<Scene[]> {
+async function fetchScenes(token: string): Promise<Scene[]> {
   const res = await fetch(`${API_BASE}/scenes`, {
-    headers: { Authorization: `Bearer ${smartThingsToken}` },
+    headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
   });
   if (!res.ok) throw new Error(`SmartThings svarte ${res.status}`);
@@ -32,16 +33,17 @@ async function fetchScenes(): Promise<Scene[]> {
 }
 
 export async function GET() {
-  if (!smartThingsToken) {
+  const token = await getAccessToken();
+  if (!token) {
     return NextResponse.json(
-      { error: "SMARTTHINGS_TOKEN er ikke satt" },
+      { error: "SmartThings er ikke tilkoblet", connectUrl: CONNECT_URL },
       { status: 503, headers: { "Cache-Control": "no-store" } }
     );
   }
 
   try {
     if (!cachedScenes || Date.now() - cachedScenes.at > CACHE_TTL) {
-      cachedScenes = { scenes: await fetchScenes(), at: Date.now() };
+      cachedScenes = { scenes: await fetchScenes(token), at: Date.now() };
     }
     const data: ScenesData = { scenes: cachedScenes.scenes, activeId };
     return NextResponse.json(data, {
@@ -56,9 +58,10 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  if (!smartThingsToken) {
+  const token = await getAccessToken();
+  if (!token) {
     return NextResponse.json(
-      { error: "SMARTTHINGS_TOKEN er ikke satt" },
+      { error: "SmartThings er ikke tilkoblet", connectUrl: CONNECT_URL },
       { status: 503 }
     );
   }
@@ -79,7 +82,7 @@ export async function POST(request: NextRequest) {
   if (requestedId) {
     const res = await fetch(`${API_BASE}/scenes/${requestedId}/execute`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${smartThingsToken}` },
+      headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) {
       return NextResponse.json(

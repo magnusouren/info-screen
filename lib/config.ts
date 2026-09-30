@@ -2,7 +2,7 @@
 // Endre disse verdiene for å tilpasse skjermen til din lokasjon.
 
 export const config = {
-    // Geografisk posisjon (Trondheim sentrum som standard)
+    // Geografisk posisjon
     location: {
         lat: 59.92312062821025,
         lon: 10.77223142198102,
@@ -14,9 +14,6 @@ export const config = {
     // Legg til flere objekter for å vise flere stopp.
     bus: {
         stops: [
-            { stopId: 'NSR:StopPlace:58246', maxDepartures: 5 },
-            { stopId: 'NSR:StopPlace:58190', maxDepartures: 5 },
-            { stopId: 'NSR:StopPlace:59421', maxDepartures: 5 },
         ],
     },
 

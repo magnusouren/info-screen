@@ -87,7 +87,7 @@ export default function Calendar() {
   const groups = data ? groupByDay(data.events, new Date()) : [];
 
   return (
-    <div className="flex flex-col min-h-0 max-h-48">
+    <div className="flex flex-col min-h-0 sm:max-h-48">
       <div className="flex items-center gap-2 text-xs text-text-3 uppercase tracking-widest mb-3 shrink-0">
         <CalendarBlank size={13} weight="light" />
         Kalender
@@ -99,7 +99,7 @@ export default function Calendar() {
       ) : data.events.length === 0 ? (
         <div className="text-text-4 text-sm font-light">Ingen hendelser</div>
       ) : (
-        <div className="flex gap-4 overflow-x-auto overflow-y-hidden flex-1 min-h-0 pb-1">
+        <div className="flex gap-4 overflow-x-auto sm:overflow-y-hidden sm:flex-1 sm:min-h-0 pb-1">
           {groups.map((g) => (
             <div key={g.label} className="min-w-[120px] flex-1">
               <div className="text-text-3 text-[11px] uppercase tracking-wider mb-1.5 truncate">

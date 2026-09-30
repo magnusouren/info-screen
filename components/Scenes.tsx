@@ -27,17 +27,25 @@ export default function Scenes() {
   const [data, setData] = useState<ScenesData | null>(null);
   const [pending, setPending] = useState<string | null>(null);
   const [error, setError] = useState(false);
+  const [connectUrl, setConnectUrl] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
       try {
         const res = await fetch("/api/scenes");
-        if (!res.ok) throw new Error();
+        if (!res.ok) {
+          const json = (await res.json().catch(() => null)) as {
+            connectUrl?: string;
+          } | null;
+          if (!cancelled) setConnectUrl(json?.connectUrl ?? null);
+          throw new Error();
+        }
         const json = (await res.json()) as ScenesData;
         if (!cancelled) {
           setData(json);
           setError(false);
+          setConnectUrl(null);
         }
       } catch {
         if (!cancelled) setError(true);
@@ -75,8 +83,19 @@ export default function Scenes() {
   return (
     <div>
       {!data ? (
-        <div className="text-text-5 text-sm animate-pulse">
-          {error ? "Scener utilgjengelig" : "Laster…"}
+        <div className="text-text-5 text-sm">
+          {!error ? (
+            <span className="animate-pulse">Laster…</span>
+          ) : connectUrl ? (
+            <a
+              href={connectUrl}
+              className="text-accent underline underline-offset-2"
+            >
+              Koble til SmartThings
+            </a>
+          ) : (
+            "Scener utilgjengelig"
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-3 gap-2">
@@ -90,7 +109,7 @@ export default function Scenes() {
                 type="button"
                 onClick={() => activate(s)}
                 aria-pressed={active}
-                className={`flex flex-col items-center gap-1 rounded-xl px-6 py-2 min-w-[110px] border transition-colors ${
+                className={`flex flex-col items-center gap-1 rounded-xl px-2 sm:px-4 lg:px-6 py-2 border transition-colors ${
                   active
                     ? "bg-surface border-border text-text"
                     : "bg-surface/40 border-border text-text-3 hover:text-text-2 hover:bg-surface/70"
