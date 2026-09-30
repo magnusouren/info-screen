@@ -99,17 +99,17 @@ export default function Weather() {
         className="text-left cursor-pointer rounded-lg -mx-2 -my-1 px-2 py-1 hover:bg-surface/40 transition-colors"
         aria-label="Vis værdetaljer"
       >
-        <div className="flex items-center gap-1 text-text-3 text-xs font-light">
-          <MapPin size={11} weight="light" />
-          <span>{data.locationName}</span>
-        </div>
-        <div className="mt-1 flex items-center gap-3">
-          <WeatherIcon symbolCode={data.symbolCode} size={44} className="text-text-2 shrink-0" />
-          <span className="text-[clamp(1.875rem,4vw,3rem)] font-thin text-text tabular-nums">{data.temperature}°</span>
-        </div>
-        <div className="mt-1 flex gap-4 text-text-3 text-sm font-light items-center">
-          <span className="flex items-center gap-1"><Wind size={13} weight="light" />{data.windSpeed} m/s</span>
-          <span className="flex items-center gap-1"><Drop size={13} weight="light" />{data.humidity}%</span>
+        <div className="flex items-center gap-3">
+          <WeatherIcon symbolCode={data.symbolCode} size={40} className="text-text-2 shrink-0" />
+          <span className="text-[clamp(1.5rem,3vw,2.5rem)] font-thin text-text tabular-nums shrink-0">{data.temperature}°</span>
+          <div className="flex flex-col gap-0.5 text-text-3 text-xs font-light min-w-0">
+            <span className="flex items-center gap-1 truncate">
+              <MapPin size={10} weight="light" className="shrink-0" />
+              <span className="truncate">{data.locationName}</span>
+            </span>
+            <span className="flex items-center gap-1"><Wind size={11} weight="light" />{data.windSpeed} m/s</span>
+            <span className="flex items-center gap-1"><Drop size={11} weight="light" />{data.humidity}%</span>
+          </div>
         </div>
         <PrecipitationBar data={data.precipitation} />
       </button>

@@ -223,7 +223,11 @@ export default function BusDepartures() {
 										{dep.destination}
 									</span>
 									<span className="tabular-nums text-xs w-12 text-right shrink-0 text-text-3">
-										{dep.minutesUntil <= 0 ? "nå" : `${dep.minutesUntil} min`}
+										{dep.minutesUntil <= 0
+											? "nå"
+											: dep.minutesUntil > 10
+												? dep.expectedTime
+												: `${dep.minutesUntil} min`}
 									</span>
 								</div>
 							))}

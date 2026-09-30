@@ -13,15 +13,17 @@ import Weather from "@/components/Weather";
 export default function Page() {
 	return (
 		<main className="min-h-dvh sm:h-dvh w-full overflow-y-auto sm:overflow-hidden bg-bg p-4 sm:p-5 lg:p-6 flex flex-col gap-3 lg:gap-4">
-			{/* Top row: Clock + Weather + Calendar */}
-			<div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6 lg:gap-8 shrink-0 min-w-0">
-				<div className="flex-none min-w-0">
+			{/* Top row: Clock + Weather + Calendar — same column template as the row below so they align */}
+			<div className="flex flex-col sm:grid sm:grid-cols-[minmax(140px,0.9fr)_1px_minmax(160px,1fr)_1px_minmax(160px,1fr)] gap-4 md:gap-6 sm:items-start shrink-0 min-w-0">
+				<div className="min-w-0">
 					<ErrorBoundary label="Klokke">
 						<Clock />
 					</ErrorBoundary>
 				</div>
 
-				<div className="flex flex-col gap-2 justify-center sm:pt-2 flex-none min-w-0">
+				<div className="border-t border-border sm:border-t-0 sm:bg-border" />
+
+				<div className="min-w-0 flex flex-col gap-2">
 					<ErrorBoundary label="Vær">
 						<Weather />
 					</ErrorBoundary>
@@ -30,7 +32,9 @@ export default function Page() {
 					</ErrorBoundary>
 				</div>
 
-				<div className="w-full sm:basis-1/3 sm:grow-0 sm:min-w-0 sm:pt-2">
+				<div className="border-t border-border sm:border-t-0 sm:bg-border" />
+
+				<div className="min-w-0">
 					<ErrorBoundary label="Kalender">
 						<Calendar />
 					</ErrorBoundary>
