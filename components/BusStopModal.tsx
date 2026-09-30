@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { XIcon as X, BusIcon as Bus } from "@phosphor-icons/react";
 import type { StopDepartures } from "@/lib/types/bus";
+import { hexToRgba } from "@/lib/colorUtils";
 
 export default function BusStopModal({
   stopId,
@@ -88,7 +89,14 @@ export default function BusStopModal({
                   key={`${dep.line}-${dep.expectedTime}-${i}`}
                   className="flex items-center gap-3 px-5 py-3"
                 >
-                  <span className="w-10 text-center text-xs font-medium text-text-2 bg-surface-2 rounded px-1 py-1 tabular-nums shrink-0">
+                  <span
+                    className="w-10 text-center text-xs font-medium text-text-2 bg-surface-2 rounded px-1 py-1 tabular-nums shrink-0"
+                    style={
+                      dep.color
+                        ? { backgroundColor: hexToRgba(dep.color, 0.2), color: dep.color }
+                        : undefined
+                    }
+                  >
                     {dep.line}
                   </span>
                   <span className="text-text-2 flex-1 truncate font-light">

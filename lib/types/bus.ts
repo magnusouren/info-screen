@@ -1,9 +1,18 @@
+export interface LinePresentation {
+  colour: string | null;
+  textColour: string | null;
+}
+
 export interface EstimatedCall {
   expectedDepartureTime: string;
   destinationDisplay: { frontText: string };
   serviceJourney: {
     journeyPattern: {
-      line: { publicCode: string; transportMode: string };
+      line: {
+        publicCode: string;
+        transportMode: string;
+        presentation: LinePresentation | null;
+      };
     };
   };
 }
@@ -22,6 +31,7 @@ export interface Departure {
   destination: string;
   expectedTime: string;
   minutesUntil: number;
+  color: string | null;
 }
 
 export interface StopDepartures {

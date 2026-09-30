@@ -201,6 +201,7 @@ async function fetchOneStop(
             timeZone: "Europe/Oslo",
           }),
           minutesUntil: Math.round((exp.getTime() - now.getTime()) / 60000),
+          color: null,
         };
       }),
     };

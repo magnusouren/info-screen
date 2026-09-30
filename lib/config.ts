@@ -59,6 +59,17 @@ export const config = {
             'Rolig belysning': 'lightbulb',
             Hjemme: 'power',
         } as Record<string, string>,
+
+        // Mapping fra SmartThings sin roomId til visningsnavn for lys-siden.
+        // Finn roomId-ene dine ved å inspisere enhetene via SmartThings API
+        // (GET /v1/devices) — vi ber ikke om r:locations:*-scope for å slippe
+        // å hente de faktiske romnavnene derfra.
+        rooms: {
+            '8b374516-caa5-45e9-97ff-5eea6338f155': 'Stue',
+            'd33aae1f-06e9-4d3a-9c74-a09e6504bd30': 'Kjøkken',
+            'fb744aae-6342-47a1-9058-0547c837136d': 'Soverom',
+            'b870030c-92d3-436a-8677-21b88be89c9d': 'Bod',
+        } as Record<string, string>,
     },
 } as const;
 

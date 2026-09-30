@@ -82,6 +82,11 @@ export default function Scenes() {
 
   return (
     <div>
+      <div className="flex items-center gap-2 text-xs text-text-3 uppercase tracking-widest mb-2">
+        <Power size={13} weight="light" />
+        Scener
+      </div>
+
       {!data ? (
         <div className="text-text-5 text-sm">
           {!error ? (

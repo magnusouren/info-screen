@@ -10,7 +10,11 @@ query StopDepartures($id: String!, $count: Int!) {
       destinationDisplay { frontText }
       serviceJourney {
         journeyPattern {
-          line { publicCode transportMode }
+          line {
+            publicCode
+            transportMode
+            presentation { colour textColour }
+          }
         }
       }
     }
@@ -57,6 +61,7 @@ export async function fetchStop(
             timeZone: "Europe/Oslo",
           }),
           minutesUntil: Math.round((exp.getTime() - now.getTime()) / 60000),
+          color: call.serviceJourney.journeyPattern.line.presentation?.colour ?? null,
         };
       }),
     };
