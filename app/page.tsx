@@ -1,5 +1,6 @@
 import BusDepartures from "@/components/BusDepartures";
 import Calendar from "@/components/Calendar";
+import CityBike from "@/components/CityBike";
 import Clock from "@/components/Clock";
 import Currency from "@/components/Currency";
 import ElectricityPriceClient from "@/components/ElectricityPriceClient";
@@ -42,9 +43,13 @@ export default function Page() {
 
 			{/* Bottom row: Bus + Home control + News/Prices */}
 			<div className="flex flex-col sm:grid sm:grid-cols-[minmax(140px,0.9fr)_1px_minmax(160px,1fr)_1px_minmax(160px,1fr)] gap-4 md:gap-6 sm:flex-1 sm:min-h-0">
-				<div className="min-w-0 overflow-hidden">
+				<div className="min-w-0 overflow-hidden flex flex-col gap-4 lg:gap-6">
 					<ErrorBoundary label="Buss">
 						<BusDepartures />
+					</ErrorBoundary>
+					<div className="border-t border-border" />
+					<ErrorBoundary label="Bysykkel">
+						<CityBike />
 					</ErrorBoundary>
 				</div>
 
