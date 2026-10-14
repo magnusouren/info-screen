@@ -79,12 +79,12 @@ export default function Page() {
 							<ElectricityPriceClient />
 						</ErrorBoundary>
 					</div>
-					<div className="border-t border-border shrink-0" />
+					{/* <div className="border-t border-border shrink-0" />
 					<div className="shrink-0">
 						<ErrorBoundary label="Valuta">
 							<Currency />
 						</ErrorBoundary>
-					</div>
+					</div> */}
 				</div>
 			</div>
 		</main>
