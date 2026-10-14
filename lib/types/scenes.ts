@@ -14,5 +14,4 @@ export interface Scene {
 
 export interface ScenesData {
   scenes: Scene[];
-  activeId: string | null;
 }

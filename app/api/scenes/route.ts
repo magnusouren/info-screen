@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { config } from "@/lib/config";
+import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
 import { getAccessToken } from "@/lib/smartthingsAuth";
 import type { Scene, SceneIcon, ScenesData } from "@/lib/types/scenes";
 
@@ -14,10 +15,9 @@ function toIcon(name: string): SceneIcon {
 }
 
 let cachedScenes: { scenes: Scene[]; at: number } | null = null;
-let activeId: string | null = null;
 
 async function fetchScenes(token: string): Promise<Scene[]> {
-  const res = await fetch(`${API_BASE}/scenes`, {
+  const res = await fetchWithTimeout(`${API_BASE}/scenes`, {
     headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
   });
@@ -45,7 +45,7 @@ export async function GET() {
     if (!cachedScenes || Date.now() - cachedScenes.at > CACHE_TTL) {
       cachedScenes = { scenes: await fetchScenes(token), at: Date.now() };
     }
-    const data: ScenesData = { scenes: cachedScenes.scenes, activeId };
+    const data: ScenesData = { scenes: cachedScenes.scenes };
     return NextResponse.json(data, {
       headers: { "Cache-Control": "no-store" },
     });
@@ -66,33 +66,31 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  let body: { id?: string | null };
+  let body: { id?: string };
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: "Ugyldig JSON" }, { status: 400 });
   }
 
-  const requestedId = body?.id ?? null;
+  const id = body?.id;
   const scenes = cachedScenes?.scenes ?? [];
-  if (requestedId !== null && !scenes.some((s) => s.id === requestedId)) {
+  if (!id || !scenes.some((s) => s.id === id)) {
     return NextResponse.json({ error: "Ukjent scene" }, { status: 400 });
   }
 
-  if (requestedId) {
-    const res = await fetch(`${API_BASE}/scenes/${requestedId}/execute`, {
+  try {
+    const res = await fetchWithTimeout(`${API_BASE}/scenes/${id}/execute`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     });
-    if (!res.ok) {
-      return NextResponse.json(
-        { error: "Kunne ikke aktivere scenen" },
-        { status: 502 }
-      );
-    }
+    if (!res.ok) throw new Error();
+  } catch {
+    return NextResponse.json(
+      { error: "Kunne ikke aktivere scenen" },
+      { status: 502 }
+    );
   }
 
-  activeId = requestedId;
-  const data: ScenesData = { scenes, activeId };
-  return NextResponse.json(data, { headers: { "Cache-Control": "no-store" } });
+  return NextResponse.json({ ok: true });
 }

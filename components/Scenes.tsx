@@ -23,11 +23,14 @@ const ICONS: Record<
   forkknife: ForkKnife,
 };
 
+const FAILED_FLASH_MS = 2000;
+
 export default function Scenes() {
   const [data, setData] = useState<ScenesData | null>(null);
-  const [pending, setPending] = useState<string | null>(null);
   const [error, setError] = useState(false);
   const [connectUrl, setConnectUrl] = useState<string | null>(null);
+  const [firingIds, setFiringIds] = useState<Set<string>>(new Set());
+  const [failedId, setFailedId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -59,24 +62,29 @@ export default function Scenes() {
     };
   }, []);
 
-  const activate = async (scene: Scene) => {
-    if (!data) return;
-    const nextId = data.activeId === scene.id ? null : scene.id;
-    setPending(scene.id);
-    setData({ ...data, activeId: nextId });
+  useEffect(() => {
+    if (!failedId) return;
+    const id = setTimeout(() => setFailedId(null), FAILED_FLASH_MS);
+    return () => clearTimeout(id);
+  }, [failedId]);
+
+  const trigger = async (scene: Scene) => {
+    setFiringIds((prev) => new Set(prev).add(scene.id));
     try {
       const res = await fetch("/api/scenes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: nextId }),
+        body: JSON.stringify({ id: scene.id }),
       });
       if (!res.ok) throw new Error();
-      const json = (await res.json()) as ScenesData;
-      setData(json);
     } catch {
-      setError(true);
+      setFailedId(scene.id);
     } finally {
-      setPending(null);
+      setFiringIds((prev) => {
+        const next = new Set(prev);
+        next.delete(scene.id);
+        return next;
+      });
     }
   };
 
@@ -106,21 +114,20 @@ export default function Scenes() {
         <div className="grid grid-cols-3 gap-2">
           {data.scenes.map((s) => {
             const Icon = ICONS[s.icon];
-            const active = data.activeId === s.id;
-            const busy = pending === s.id;
+            const firing = firingIds.has(s.id);
+            const failed = failedId === s.id;
             return (
               <button
                 key={s.id}
                 type="button"
-                onClick={() => activate(s)}
-                aria-pressed={active}
-                className={`flex flex-col items-center gap-1 rounded-xl px-2 sm:px-4 lg:px-6 py-2 border transition-colors ${
-                  active
-                    ? "bg-surface border-border text-text"
-                    : "bg-surface/40 border-border text-text-3 hover:text-text-2 hover:bg-surface/70"
-                } ${busy ? "opacity-60" : ""}`}
+                onClick={() => trigger(s)}
+                disabled={firing}
+                aria-busy={firing}
+                className={`flex flex-col items-center gap-1 rounded-xl px-2 sm:px-4 lg:px-6 py-2 border transition-colors bg-surface/40 text-text-3 hover:text-text-2 hover:bg-surface/70 ${
+                  failed ? "border-live text-live" : "border-border"
+                } ${firing ? "opacity-60" : ""}`}
               >
-                <Icon size={26} weight={active ? "fill" : "light"} />
+                <Icon size={26} weight="light" />
                 <span className="text-sm font-light tracking-wide">
                   {s.name}
                 </span>
