@@ -106,7 +106,7 @@ export default function Weather() {
 				className="text-left cursor-pointer rounded-lg -mx-2 -my-1 px-2 py-1 hover:bg-surface/40 transition-colors"
 				aria-label="Vis værdetaljer"
 			>
-				<div className="flex items-center gap-3">
+				<div className="flex items-center gap-3 mt-2">
 					<WeatherIcon
 						symbolCode={data.symbolCode}
 						size={52}
@@ -115,7 +115,7 @@ export default function Weather() {
 					<span className="text-5xl sm:text-7xl font-thin text-text tabular-nums shrink-0">
 						{data.temperature}°
 					</span>
-					<div className="ml-auto flex flex-col items-start gap-0.5 text-text-3 text-xs font-light min-w-0">
+					<div className="ml-auto flex flex-col items-start gap-0.5 text-text-3 text-sm font-light min-w-0">
 						<span className="flex items-center gap-1 truncate">
 							<MapPin size={10} weight="light" className="shrink-0" />
 							<span className="truncate">{data.locationName}</span>
