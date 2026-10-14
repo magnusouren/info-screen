@@ -1,9 +1,16 @@
 "use client";
 
-import { BicycleIcon as Bicycle } from "@phosphor-icons/react";
+import {
+	BicycleIcon as Bicycle,
+	LightningIcon as Lightning,
+} from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 import { getCoords } from "@/lib/geolocation";
 import type { CityBikeStation } from "@/lib/types/citybike";
+
+function iconsForType(id: string) {
+	return id === "ebike" ? [Lightning, Bicycle] : [Bicycle];
+}
 
 export default function CityBike() {
 	const [station, setStation] = useState<CityBikeStation | null>(null);
@@ -55,20 +62,19 @@ export default function CityBike() {
 				<Bicycle size={13} weight="light" />
 				{station.name}
 			</div>
-			<div className="flex items-baseline gap-2 text-sm">
-				<span className="text-text-2 font-light">
-					{station.bikesAvailable}{" "}
-					{station.bikesAvailable === 1 ? "sykkel ledig" : "sykler ledig"}
-				</span>
-				{station.vehicleTypes.length > 0 && (
-					<span className="text-text-4 text-xs font-light">
-						(
-						{station.vehicleTypes
-							.map((v) => `${v.count} ${v.name}`)
-							.join(", ")}
-						)
-					</span>
-				)}
+			<div className="flex items-center gap-4 text-sm">
+				{station.vehicleTypes.map((v) => (
+					<div
+						key={v.id}
+						className="flex items-center gap-1 text-text-2"
+						title={v.name}
+					>
+						{iconsForType(v.id).map((Icon, i) => (
+							<Icon key={i} size={14} weight="light" />
+						))}
+						<span className="font-light tabular-nums">{v.count}</span>
+					</div>
+				))}
 			</div>
 		</div>
 	);

@@ -67,6 +67,7 @@ export async function fetchNearestStations(
       VEHICLE_TYPE_NAMES[vt.vehicle_type_id] ?? vt.name ?? vt.vehicle_type_id
     );
   }
+  const typeOrder = vehicleTypes.map((vt) => vt.vehicle_type_id);
 
   const statusById = new Map<string, StationStatus>();
   for (const s of (statusJson.data.stations as StationStatus[]) ?? []) {
@@ -78,13 +79,16 @@ export async function fetchNearestStations(
     const status = statusById.get(info.station_id);
     if (!status?.is_installed || !status.is_renting) continue;
 
-    const types: VehicleTypeCount[] = (status.vehicle_types_available ?? [])
-      .filter((v) => v.count > 0)
-      .map((v) => ({
-        id: v.vehicle_type_id,
-        name: typeNameById.get(v.vehicle_type_id) ?? v.vehicle_type_id,
-        count: v.count,
-      }));
+    const countById = new Map<string, number>();
+    for (const v of status.vehicle_types_available ?? []) {
+      countById.set(v.vehicle_type_id, v.count);
+    }
+    const ids = typeOrder.length > 0 ? typeOrder : [...countById.keys()];
+    const types: VehicleTypeCount[] = ids.map((id) => ({
+      id,
+      name: typeNameById.get(id) ?? id,
+      count: countById.get(id) ?? 0,
+    }));
 
     stations.push({
       stationId: info.station_id,
