@@ -6,8 +6,10 @@ import {
   LightbulbIcon as Lightbulb,
   PowerIcon as Power,
 } from "@phosphor-icons/react";
+import { brightnessFill } from "@/lib/colorUtils";
 import type { Light } from "@/lib/types/lights";
 import { useLights } from "@/lib/useLights";
+import Slider from "./Slider";
 
 function LightRow({
   light,
@@ -47,15 +49,16 @@ function LightRow({
       </div>
 
       {light.level !== null && (
-        <input
-          type="range"
+        <Slider
+          value={level}
           min={1}
           max={100}
-          value={level}
           disabled={!on}
-          onChange={(e) => setLevel(Number(e.target.value))}
-          onPointerUp={() => onChange(light.id, { switch: "on", level })}
-          className="light-slider flex-1"
+          onChange={setLevel}
+          onCommit={(next) => onChange(light.id, { switch: "on", level: next })}
+          ariaLabel={`Lysstyrke for ${light.label}`}
+          indicatorColor={brightnessFill(level)}
+          className="flex-1"
         />
       )}
     </div>

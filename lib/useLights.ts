@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { LightsData } from "@/lib/types/lights";
 
-type Patch = { switch?: "on" | "off"; level?: number };
+type Patch = { switch?: "on" | "off"; level?: number; colorTemperature?: number };
 
 async function send(deviceId: string, patch: Patch) {
   const res = await fetch("/api/lights", {
@@ -54,7 +54,12 @@ export function useLights() {
             ...room,
             lights: room.lights.map((l) =>
               l.id === deviceId
-                ? { ...l, switch: patch.switch ?? l.switch, level: patch.level ?? l.level }
+                ? {
+                    ...l,
+                    switch: patch.switch ?? l.switch,
+                    level: patch.level ?? l.level,
+                    colorTemperature: patch.colorTemperature ?? l.colorTemperature,
+                  }
                 : l
             ),
           }))

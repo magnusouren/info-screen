@@ -5,6 +5,8 @@ import type { Light, LightRoom, LightsData } from "@/lib/types/lights";
 
 const API_BASE = "https://api.smartthings.com/v1";
 const CONNECT_URL = "/api/smartthings/authorize";
+const MIN_KELVIN = 2200;
+const MAX_KELVIN = 6500;
 
 // Capabilities that rule a device out even though it has `switch` —
 // TVs, media players, sensors and buttons all expose `switch` on SmartThings
@@ -42,6 +44,7 @@ interface DeviceStatus {
     main?: {
       switch?: { switch?: { value?: string } };
       switchLevel?: { level?: { value?: number } };
+      colorTemperature?: { colorTemperature?: { value?: number } };
     };
   };
 }
@@ -87,6 +90,7 @@ async function fetchLights(token: string): Promise<LightsData> {
         label: device.label ?? device.name ?? "Ukjent lys",
         switch: main?.switch?.switch?.value === "on" ? "on" : "off",
         level: main?.switchLevel?.level?.value ?? null,
+        colorTemperature: main?.colorTemperature?.colorTemperature?.value ?? null,
         roomId: device.roomId ?? null,
       };
     })
@@ -138,7 +142,12 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  let body: { deviceId?: string; switch?: "on" | "off"; level?: number };
+  let body: {
+    deviceId?: string;
+    switch?: "on" | "off";
+    level?: number;
+    colorTemperature?: number;
+  };
   try {
     body = await request.json();
   } catch {
@@ -160,6 +169,18 @@ export async function POST(request: NextRequest) {
       capability: "switchLevel",
       command: "setLevel",
       arguments: [level],
+    });
+  }
+  if (typeof body.colorTemperature === "number" && Number.isFinite(body.colorTemperature)) {
+    const kelvin = Math.max(
+      MIN_KELVIN,
+      Math.min(MAX_KELVIN, Math.round(body.colorTemperature))
+    );
+    commands.push({
+      component: "main",
+      capability: "colorTemperature",
+      command: "setColorTemperature",
+      arguments: [kelvin],
     });
   }
   if (commands.length === 0) {

@@ -3,6 +3,7 @@ export interface Light {
   label: string;
   switch: "on" | "off";
   level: number | null;
+  colorTemperature: number | null;
 }
 
 export interface LightRoom {
