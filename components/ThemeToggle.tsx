@@ -50,13 +50,13 @@ export default function ThemeToggle() {
         type="button"
         onClick={handleClick}
         aria-label={`Bytt fargetema (nåværende: ${THEME_LABELS[theme]})`}
-        className="fixed top-4 right-4 z-40 flex items-center justify-center w-9 h-9 rounded-full bg-surface/70 border border-border text-text-4 opacity-50 hover:opacity-100 focus-visible:opacity-100 transition-opacity"
+        className="fixed top-[calc(env(safe-area-inset-top)+1rem)] right-[calc(env(safe-area-inset-right)+1rem)] z-40 flex items-center justify-center w-9 h-9 rounded-full bg-surface/70 border border-border text-text-4 opacity-50 hover:opacity-100 focus-visible:opacity-100 transition-opacity"
       >
         <Icon size={16} weight="light" />
       </button>
       {toast && (
         <div
-          className="fixed top-16 right-4 z-50 flex items-center gap-2 px-3 py-2 rounded-full bg-surface/90 backdrop-blur border border-border text-text-2 shadow-lg pointer-events-none"
+          className="fixed top-[calc(env(safe-area-inset-top)+4rem)] right-[calc(env(safe-area-inset-right)+1rem)] z-50 flex items-center gap-2 px-3 py-2 rounded-full bg-surface/90 backdrop-blur border border-border text-text-2 shadow-lg pointer-events-none"
           role="status"
         >
           <Icon size={16} weight="light" />

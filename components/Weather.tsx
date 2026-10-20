@@ -103,7 +103,7 @@ export default function Weather() {
 			<button
 				type="button"
 				onClick={() => setOpen(true)}
-				className="text-left cursor-pointer rounded-lg -mx-2 -my-1 px-2 py-1 hover:bg-surface/40 transition-colors"
+				className="w-full text-left cursor-pointer rounded-lg -mx-2 -my-1 px-2 py-1 hover:bg-surface/40 transition-colors"
 				aria-label="Vis værdetaljer"
 			>
 				<div className="flex items-center gap-3 mt-2">
