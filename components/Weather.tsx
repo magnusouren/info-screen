@@ -26,7 +26,7 @@ function PrecipitationBar({ data }: { data: WeatherData["precipitation"] }) {
 		<div className="mt-3">
 			<div className="flex items-end gap-0.5 h-8">
 				{data.map((d, i) => (
-					<div key={i} className="flex flex-col items-center flex-1">
+					<div key={i} className="flex flex-col items-center justify-end h-full flex-1">
 						<div
 							className="w-full bg-text-3 rounded-sm"
 							style={{
