@@ -40,7 +40,7 @@ export function useLights() {
       }
     };
     load();
-    const id = setInterval(load, 30 * 1000);
+    const id = setInterval(load, 15 * 1000);
     return () => {
       cancelled = true;
       clearInterval(id);

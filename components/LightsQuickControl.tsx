@@ -11,43 +11,40 @@ const MIN_KELVIN = 2200;
 const MAX_KELVIN = 6500;
 const DEFAULT_KELVIN = 4000;
 
+function averageOf(values: number[]): number | null {
+	if (values.length === 0) return null;
+	return Math.round(values.reduce((sum, v) => sum + v, 0) / values.length);
+}
+
 export default function LightsQuickControl() {
 	const { data, error, setLight } = useLights();
 	const [open, setOpen] = useState(false);
-	const [master, setMaster] = useState(50);
-	const [temp, setTemp] = useState(DEFAULT_KELVIN);
-	const [initialized, setInitialized] = useState(false);
-
-	if (!initialized && data) {
-		const onDimmable = data
-			.flatMap((r) => r.lights)
-			.filter((l) => l.level !== null && l.switch === "on");
-		if (onDimmable.length > 0) {
-			const avg = Math.round(
-				onDimmable.reduce((sum, l) => sum + (l.level ?? 0), 0) /
-					onDimmable.length,
-			);
-			setMaster(avg);
-		}
-
-		const onTunable = data
-			.flatMap((r) => r.lights)
-			.filter((l) => l.colorTemperature !== null && l.switch === "on");
-		if (onTunable.length > 0) {
-			const avg = Math.round(
-				onTunable.reduce((sum, l) => sum + (l.colorTemperature ?? 0), 0) /
-					onTunable.length,
-			);
-			setTemp(avg);
-		}
-		setInitialized(true);
-	}
 
 	const dimmableLights =
 		data?.flatMap((r) => r.lights).filter((l) => l.level !== null) ?? [];
 	const tunableLights =
 		data?.flatMap((r) => r.lights).filter((l) => l.colorTemperature !== null) ??
 		[];
+
+	const liveMasterAvg = averageOf(
+		dimmableLights.filter((l) => l.switch === "on").map((l) => l.level!),
+	);
+	const [syncedMasterAvg, setSyncedMasterAvg] = useState(liveMasterAvg);
+	const [master, setMaster] = useState(liveMasterAvg ?? 50);
+	if (liveMasterAvg !== null && liveMasterAvg !== syncedMasterAvg) {
+		setSyncedMasterAvg(liveMasterAvg);
+		setMaster(liveMasterAvg);
+	}
+
+	const liveTempAvg = averageOf(
+		tunableLights.filter((l) => l.switch === "on").map((l) => l.colorTemperature!),
+	);
+	const [syncedTempAvg, setSyncedTempAvg] = useState(liveTempAvg);
+	const [temp, setTemp] = useState(liveTempAvg ?? DEFAULT_KELVIN);
+	if (liveTempAvg !== null && liveTempAvg !== syncedTempAvg) {
+		setSyncedTempAvg(liveTempAvg);
+		setTemp(liveTempAvg);
+	}
 
 	const applyMaster = (next: number) => {
 		for (const light of dimmableLights) {
