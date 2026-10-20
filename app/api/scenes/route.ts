@@ -74,9 +74,8 @@ export async function POST(request: NextRequest) {
   }
 
   const id = body?.id;
-  const scenes = cachedScenes?.scenes ?? [];
-  if (!id || !scenes.some((s) => s.id === id)) {
-    return NextResponse.json({ error: "Ukjent scene" }, { status: 400 });
+  if (!id) {
+    return NextResponse.json({ error: "Mangler id" }, { status: 400 });
   }
 
   try {
