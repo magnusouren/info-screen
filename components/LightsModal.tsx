@@ -18,9 +18,11 @@ const DEFAULT_KELVIN = 4000;
 type LightPatch = { switch?: "on" | "off"; level?: number; colorTemperature?: number };
 
 function RoomSliders({
+  name,
   lights,
   onChange,
 }: {
+  name: string;
   lights: Light[];
   onChange: (id: string, patch: LightPatch) => void;
 }) {
@@ -49,36 +51,66 @@ function RoomSliders({
 
   if (dimmable.length === 0 && tunable.length === 0) return null;
 
+  const anyOn = lights.some((l) => l.switch === "on");
+  const toggleAll = () => {
+    for (const l of lights) onChange(l.id, { switch: anyOn ? "off" : "on" });
+  };
+
   return (
-    <div className="flex flex-col gap-3 pb-3 mb-2 border-b border-border/60">
-      {dimmable.length > 0 && (
-        <Slider
-          value={level}
-          min={1}
-          max={100}
-          onChange={setLevel}
-          onCommit={(next) => {
-            for (const l of dimmable) onChange(l.id, { switch: "on", level: next });
-          }}
-          ariaLabel="Dimme alle lys i rommet"
-          indicatorColor={brightnessFill(level)}
-          className="w-full"
-        />
-      )}
+    <div className="pb-3 mb-2 border-b border-border/60">
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={toggleAll}
+          aria-pressed={anyOn}
+          aria-label={`Slå ${anyOn ? "av" : "på"} alle lys i ${name}`}
+          className={`flex items-center justify-center w-8 h-8 rounded-full border shrink-0 transition-colors ${
+            anyOn
+              ? "bg-accent/20 border-accent text-accent"
+              : "bg-surface border-border text-text-4"
+          }`}
+        >
+          <Lightbulb size={15} weight={anyOn ? "fill" : "light"} />
+        </button>
+
+        <div className="w-28 shrink-0 text-text-2 text-sm font-light truncate">
+          {name}
+        </div>
+
+        {dimmable.length > 0 && (
+          <Slider
+            value={level}
+            min={1}
+            max={100}
+            onChange={setLevel}
+            onCommit={(next) => {
+              for (const l of dimmable) onChange(l.id, { switch: "on", level: next });
+            }}
+            ariaLabel={`Dimme alle lys i ${name}`}
+            indicatorColor={brightnessFill(level)}
+            className="flex-1"
+          />
+        )}
+      </div>
+
       {tunable.length > 0 && (
-        <Slider
-          value={temp}
-          min={MIN_KELVIN}
-          max={MAX_KELVIN}
-          step={100}
-          onChange={setTemp}
-          onCommit={(next) => {
-            for (const l of tunable) onChange(l.id, { switch: "on", colorTemperature: next });
-          }}
-          ariaLabel="Fargetemperatur for alle lys i rommet"
-          indicatorColor={kelvinFill(temp, MIN_KELVIN, MAX_KELVIN)}
-          className="w-full"
-        />
+        <div className="flex items-center gap-3 mt-2">
+          <div className="w-8 shrink-0" />
+          <div className="w-28 shrink-0" />
+          <Slider
+            value={temp}
+            min={MIN_KELVIN}
+            max={MAX_KELVIN}
+            step={100}
+            onChange={setTemp}
+            onCommit={(next) => {
+              for (const l of tunable) onChange(l.id, { switch: "on", colorTemperature: next });
+            }}
+            ariaLabel={`Fargetemperatur for alle lys i ${name}`}
+            indicatorColor={kelvinFill(temp, MIN_KELVIN, MAX_KELVIN)}
+            className="flex-1"
+          />
+        </div>
       )}
     </div>
   );
@@ -98,41 +130,69 @@ function LightRow({
     setLevel(light.level ?? 100);
   }
 
+  const [syncedTemp, setSyncedTemp] = useState(light.colorTemperature);
+  const [temp, setTemp] = useState(light.colorTemperature ?? DEFAULT_KELVIN);
+  if (light.colorTemperature !== syncedTemp) {
+    setSyncedTemp(light.colorTemperature);
+    setTemp(light.colorTemperature ?? DEFAULT_KELVIN);
+  }
+
   const on = light.switch === "on";
   const toggle = () => onChange(light.id, { switch: on ? "off" : "on" });
 
   return (
-    <div className="flex items-center gap-3 py-2.5">
-      <button
-        type="button"
-        onClick={toggle}
-        aria-pressed={on}
-        aria-label={`Slå ${on ? "av" : "på"} ${light.label}`}
-        className={`flex items-center justify-center w-8 h-8 rounded-full border shrink-0 transition-colors ${
-          on
-            ? "bg-accent/20 border-accent text-accent"
-            : "bg-surface border-border text-text-4"
-        }`}
-      >
-        <Lightbulb size={15} weight={on ? "fill" : "light"} />
-      </button>
+    <div className="py-2.5">
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={toggle}
+          aria-pressed={on}
+          aria-label={`Slå ${on ? "av" : "på"} ${light.label}`}
+          className={`flex items-center justify-center w-8 h-8 rounded-full border shrink-0 transition-colors ${
+            on
+              ? "bg-accent/20 border-accent text-accent"
+              : "bg-surface border-border text-text-4"
+          }`}
+        >
+          <Lightbulb size={15} weight={on ? "fill" : "light"} />
+        </button>
 
-      <div className="w-28 shrink-0 text-text-2 text-sm font-light truncate">
-        {light.label}
+        <div className="w-28 shrink-0 text-text-2 text-sm font-light truncate">
+          {light.label}
+        </div>
+
+        {light.level !== null && (
+          <Slider
+            value={level}
+            min={1}
+            max={100}
+            disabled={!on}
+            onChange={setLevel}
+            onCommit={(next) => onChange(light.id, { switch: "on", level: next })}
+            ariaLabel={`Lysstyrke for ${light.label}`}
+            indicatorColor={brightnessFill(level)}
+            className="flex-1"
+          />
+        )}
       </div>
 
-      {light.level !== null && (
-        <Slider
-          value={level}
-          min={1}
-          max={100}
-          disabled={!on}
-          onChange={setLevel}
-          onCommit={(next) => onChange(light.id, { switch: "on", level: next })}
-          ariaLabel={`Lysstyrke for ${light.label}`}
-          indicatorColor={brightnessFill(level)}
-          className="flex-1"
-        />
+      {light.colorTemperature !== null && (
+        <div className="flex items-center gap-3 mt-2">
+          <div className="w-8 shrink-0" />
+          <div className="w-28 shrink-0" />
+          <Slider
+            value={temp}
+            min={MIN_KELVIN}
+            max={MAX_KELVIN}
+            step={100}
+            disabled={!on}
+            onChange={setTemp}
+            onCommit={(next) => onChange(light.id, { switch: "on", colorTemperature: next })}
+            ariaLabel={`Fargetemperatur for ${light.label}`}
+            indicatorColor={kelvinFill(temp, MIN_KELVIN, MAX_KELVIN)}
+            className="flex-1"
+          />
+        </div>
       )}
     </div>
   );
@@ -152,7 +212,9 @@ function RoomSection({
       <div className="text-xs text-text-3 uppercase tracking-widest mb-1">
         {name}
       </div>
-      <RoomSliders lights={lights} onChange={onChange} />
+      {lights.length > 1 && (
+        <RoomSliders name={name} lights={lights} onChange={onChange} />
+      )}
       <div className="divide-y divide-border/60">
         {lights.map((l) => (
           <LightRow key={l.id} light={l} onChange={onChange} />
