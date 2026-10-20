@@ -4,6 +4,7 @@ import { LightbulbIcon as Lightbulb } from "@phosphor-icons/react";
 import { useState } from "react";
 import { averageOf, brightnessFill, kelvinFill } from "@/lib/colorUtils";
 import { useLights } from "@/lib/useLights";
+import LightPad from "./LightPad";
 import LightsModal from "./LightsModal";
 import Slider from "./Slider";
 
@@ -73,31 +74,54 @@ export default function LightsQuickControl() {
 					Lys
 				</button>
 
-				{dimmableLights.length > 0 && (
-					<Slider
-						value={master}
-						min={1}
-						max={100}
-						onChange={setMaster}
-						onCommit={applyMaster}
-						ariaLabel="Dimme alle lys"
-						indicatorColor={brightnessFill(master)}
-						className="w-full mb-4 mt-4"
+				{dimmableLights.length > 0 && tunableLights.length > 0 ? (
+					<LightPad
+						brightness={master}
+						colorTemp={temp}
+						minTemp={MIN_KELVIN}
+						maxTemp={MAX_KELVIN}
+						onChange={(b, t) => {
+							setMaster(b);
+							setTemp(t);
+						}}
+						onCommit={(b, t) => {
+							applyMaster(b);
+							applyTemp(t);
+						}}
+						ariaLabel="Lysstyrke og fargetemperatur for alle lys"
+						ringColor={kelvinFill(temp, MIN_KELVIN, MAX_KELVIN)}
+						fillColor={brightnessFill(master)}
+						className="w-full h-32 mt-4"
 					/>
-				)}
+				) : (
+					<>
+						{dimmableLights.length > 0 && (
+							<Slider
+								value={master}
+								min={1}
+								max={100}
+								onChange={setMaster}
+								onCommit={applyMaster}
+								ariaLabel="Dimme alle lys"
+								indicatorColor={brightnessFill(master)}
+								className="w-full mb-4 mt-4"
+							/>
+						)}
 
-				{tunableLights.length > 0 && (
-					<Slider
-						value={temp}
-						min={MIN_KELVIN}
-						max={MAX_KELVIN}
-						step={100}
-						onChange={setTemp}
-						onCommit={applyTemp}
-						ariaLabel="Fargetemperatur på alle lys"
-						indicatorColor={kelvinFill(temp, MIN_KELVIN, MAX_KELVIN)}
-						className="w-full"
-					/>
+						{tunableLights.length > 0 && (
+							<Slider
+								value={temp}
+								min={MIN_KELVIN}
+								max={MAX_KELVIN}
+								step={100}
+								onChange={setTemp}
+								onCommit={applyTemp}
+								ariaLabel="Fargetemperatur på alle lys"
+								indicatorColor={kelvinFill(temp, MIN_KELVIN, MAX_KELVIN)}
+								className="w-full"
+							/>
+						)}
+					</>
 				)}
 			</div>
 
