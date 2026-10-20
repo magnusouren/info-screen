@@ -41,3 +41,7 @@ export interface StopDepartures {
 }
 
 export type BusData = StopDepartures[];
+
+export interface NearbyStopDepartures extends StopDepartures {
+  distanceMeters: number;
+}

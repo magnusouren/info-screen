@@ -8,8 +8,10 @@ const CACHE_HEADERS = {
 const ERROR_HEADERS = { "Cache-Control": "no-store" };
 
 export async function GET(request: NextRequest) {
-  const latParam = Number(request.nextUrl.searchParams.get("lat"));
-  const lonParam = Number(request.nextUrl.searchParams.get("lon"));
+  const latRaw = request.nextUrl.searchParams.get("lat");
+  const lonRaw = request.nextUrl.searchParams.get("lon");
+  const latParam = latRaw !== null && latRaw !== "" ? Number(latRaw) : NaN;
+  const lonParam = lonRaw !== null && lonRaw !== "" ? Number(lonRaw) : NaN;
   const lat = Number.isFinite(latParam) ? latParam : config.location.lat;
   const lon = Number.isFinite(lonParam) ? lonParam : config.location.lon;
 

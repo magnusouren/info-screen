@@ -7,8 +7,11 @@ export function getCoords(): Promise<Coords> {
   return new Promise((resolve) => {
     navigator.geolocation.getCurrentPosition(
       (pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
-      () => resolve(null),
-      { timeout: 8000, maximumAge: 60 * 60 * 1000, enableHighAccuracy: false }
+      (err) => {
+        console.warn(`Geolocation error (${err.code}): ${err.message}`);
+        resolve(null);
+      },
+      { timeout: 20000, maximumAge: 60 * 60 * 1000, enableHighAccuracy: false }
     );
   });
 }
