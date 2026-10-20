@@ -49,6 +49,12 @@ export function kelvinFill(value: number, min: number, max: number): string {
     : mixRgb(KELVIN_WHITE, KELVIN_COOL, (t - 0.5) / 0.5);
 }
 
+// Same warm → white → cool ramp as kelvinFill, as a left-to-right CSS
+// gradient — for backgrounds that hint at the color-temperature axis itself.
+export function kelvinGradient(): string {
+  return `linear-gradient(to right, rgb(${KELVIN_WARM.join(", ")}), rgb(${KELVIN_WHITE.join(", ")}), rgb(${KELVIN_COOL.join(", ")}))`;
+}
+
 export function averageOf(values: number[]): number | null {
   if (values.length === 0) return null;
   return Math.round(values.reduce((sum, v) => sum + v, 0) / values.length);

@@ -2,7 +2,7 @@
 
 import { LightbulbIcon as Lightbulb } from "@phosphor-icons/react";
 import { useState } from "react";
-import { averageOf, brightnessFill, kelvinFill } from "@/lib/colorUtils";
+import { averageOf, brightnessFill, kelvinFill, kelvinGradient } from "@/lib/colorUtils";
 import { useLights } from "@/lib/useLights";
 import LightPad from "./LightPad";
 import LightsModal from "./LightsModal";
@@ -64,7 +64,7 @@ export default function LightsQuickControl() {
 
 	return (
 		<>
-			<div>
+			<div className="flex-1 min-h-0 flex flex-col">
 				<button
 					type="button"
 					onClick={() => setOpen(true)}
@@ -91,7 +91,8 @@ export default function LightsQuickControl() {
 						ariaLabel="Lysstyrke og fargetemperatur for alle lys"
 						ringColor={kelvinFill(temp, MIN_KELVIN, MAX_KELVIN)}
 						fillColor={brightnessFill(master)}
-						className="w-full h-32 mt-4"
+						backgroundGradient={kelvinGradient()}
+						className="w-full flex-1 min-h-0 max-sm:aspect-square max-sm:flex-none mt-4"
 					/>
 				) : (
 					<>

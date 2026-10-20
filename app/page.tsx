@@ -60,9 +60,11 @@ export default function Page() {
 						<Scenes />
 					</ErrorBoundary>
 					<div className="border-t border-border" />
-					<ErrorBoundary label="Lys">
-						<LightsQuickControl />
-					</ErrorBoundary>
+					<div className="sm:flex-1 sm:min-h-0 flex flex-col">
+						<ErrorBoundary label="Lys">
+							<LightsQuickControl />
+						</ErrorBoundary>
+					</div>
 				</div>
 
 				<div className="border-t border-border sm:border-t-0 sm:bg-border" />

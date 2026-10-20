@@ -20,6 +20,9 @@ interface LightPadProps {
 	ringColor: string;
 	/** Dot fill color — typically computed from brightness (see lib/colorUtils). */
 	fillColor: string;
+	/** Left-to-right CSS gradient hinting at the x-axis (see lib/colorUtils' kelvinGradient).
+	 *  A top-to-bottom darkening overlay is always added on top to hint at the y-axis. */
+	backgroundGradient?: string;
 	className?: string;
 }
 
@@ -35,6 +38,7 @@ export default function LightPad({
 	ariaLabel,
 	ringColor,
 	fillColor,
+	backgroundGradient,
 	className = "",
 }: LightPadProps) {
 	const trackRef = useRef<HTMLDivElement>(null);
@@ -111,8 +115,15 @@ export default function LightPad({
 			onPointerCancel={handlePointerUp}
 			onKeyDown={handleKeyDown}
 			className={`relative rounded-xl border border-border bg-surface/40 touch-none transition-colors ${
-				disabled ? "opacity-30" : "cursor-pointer hover:bg-surface/70"
+				disabled ? "opacity-30" : "cursor-pointer"
 			} ${className}`}
+			style={
+				backgroundGradient
+					? {
+							backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.92) 100%), ${backgroundGradient}`,
+						}
+					: undefined
+			}
 		>
 			<div
 				className="absolute w-5 h-5 rounded-full border-4 transition-colors"
