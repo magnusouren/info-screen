@@ -11,6 +11,10 @@ const MIN_KELVIN = 2200;
 const MAX_KELVIN = 6500;
 const DEFAULT_KELVIN = 4000;
 
+// "Bod" (bryterom) skal aldri rikkes av den globale sliderne — eget lys man
+// typisk vil styre for seg, ikke få dratt med i et "dimme alle"-kall.
+const EXCLUDED_ROOM = "Bod";
+
 function averageOf(values: number[]): number | null {
 	if (values.length === 0) return null;
 	return Math.round(values.reduce((sum, v) => sum + v, 0) / values.length);
@@ -20,11 +24,13 @@ export default function LightsQuickControl() {
 	const { data, error, setLight } = useLights();
 	const [open, setOpen] = useState(false);
 
-	const dimmableLights =
-		data?.flatMap((r) => r.lights).filter((l) => l.level !== null) ?? [];
-	const tunableLights =
-		data?.flatMap((r) => r.lights).filter((l) => l.colorTemperature !== null) ??
-		[];
+	const controllableRooms = data?.filter((r) => r.name !== EXCLUDED_ROOM) ?? [];
+	const dimmableLights = controllableRooms
+		.flatMap((r) => r.lights)
+		.filter((l) => l.level !== null);
+	const tunableLights = controllableRooms
+		.flatMap((r) => r.lights)
+		.filter((l) => l.colorTemperature !== null);
 
 	const liveMasterAvg = averageOf(
 		dimmableLights.filter((l) => l.switch === "on").map((l) => l.level!),
