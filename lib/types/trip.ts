@@ -13,6 +13,11 @@ export interface TripLeg {
   serviceJourneyId: string | null;
   operatorName: string | null;
   situations: string[];
+  fromLat: number;
+  fromLon: number;
+  toLat: number;
+  toLon: number;
+  points: string | null;
 }
 
 export interface TripPattern {

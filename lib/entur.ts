@@ -269,13 +269,14 @@ query Trip($from: Location!, $to: Location!, $numTripPatterns: Int!) {
           name
           presentation { colour }
         }
-        fromPlace { name }
-        toPlace { name }
+        fromPlace { name latitude longitude }
+        toPlace { name latitude longitude }
         serviceJourney {
           id
           operator { name }
         }
         situations { summary { value } }
+        pointsOnLink { points }
       }
     }
   }
@@ -302,10 +303,11 @@ interface TripResponse {
             name: string;
             presentation: { colour: string | null } | null;
           } | null;
-          fromPlace: { name: string };
-          toPlace: { name: string };
+          fromPlace: { name: string; latitude: number; longitude: number };
+          toPlace: { name: string; latitude: number; longitude: number };
           serviceJourney: { id: string; operator: { name: string } | null } | null;
           situations: { summary: { value: string }[] }[];
+          pointsOnLink: { points: string } | null;
         }[];
       }[];
     } | null;
@@ -357,6 +359,11 @@ export async function fetchTrip(
         serviceJourneyId: l.serviceJourney?.id ?? null,
         operatorName: l.serviceJourney?.operator?.name ?? null,
         situations: l.situations.flatMap((s) => s.summary.map((m) => m.value)),
+        fromLat: l.fromPlace.latitude,
+        fromLon: l.fromPlace.longitude,
+        toLat: l.toPlace.latitude,
+        toLon: l.toPlace.longitude,
+        points: l.pointsOnLink?.points ?? null,
       })),
     }));
 

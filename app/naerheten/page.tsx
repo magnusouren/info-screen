@@ -16,6 +16,7 @@ import {
 } from "@phosphor-icons/react";
 import { getCoords, type Coords } from "@/lib/geolocation";
 import { hexToRgba } from "@/lib/colorUtils";
+import TripMap from "@/components/TripMap";
 import {
   addPlace,
   getPlaces,
@@ -293,7 +294,8 @@ function TripDetailsModal({
         </div>
 
         <div className="overflow-y-auto flex-1 p-5">
-          <div className="flex items-baseline justify-between">
+          <TripMap legs={pattern.legs} />
+          <div className="flex items-baseline justify-between mt-4">
             <span className="text-text-2 text-sm font-light">
               {pattern.legs[0].fromName}
             </span>
