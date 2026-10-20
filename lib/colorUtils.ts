@@ -48,3 +48,8 @@ export function kelvinFill(value: number, min: number, max: number): string {
     ? mixRgb(KELVIN_WARM, KELVIN_WHITE, t / 0.5)
     : mixRgb(KELVIN_WHITE, KELVIN_COOL, (t - 0.5) / 0.5);
 }
+
+export function averageOf(values: number[]): number | null {
+  if (values.length === 0) return null;
+  return Math.round(values.reduce((sum, v) => sum + v, 0) / values.length);
+}

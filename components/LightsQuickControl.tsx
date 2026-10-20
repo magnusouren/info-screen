@@ -2,7 +2,7 @@
 
 import { LightbulbIcon as Lightbulb } from "@phosphor-icons/react";
 import { useState } from "react";
-import { brightnessFill, kelvinFill } from "@/lib/colorUtils";
+import { averageOf, brightnessFill, kelvinFill } from "@/lib/colorUtils";
 import { useLights } from "@/lib/useLights";
 import LightsModal from "./LightsModal";
 import Slider from "./Slider";
@@ -14,11 +14,6 @@ const DEFAULT_KELVIN = 4000;
 // "Bod" (bryterom) skal aldri rikkes av den globale sliderne — eget lys man
 // typisk vil styre for seg, ikke få dratt med i et "dimme alle"-kall.
 const EXCLUDED_ROOM = "Bod";
-
-function averageOf(values: number[]): number | null {
-	if (values.length === 0) return null;
-	return Math.round(values.reduce((sum, v) => sum + v, 0) / values.length);
-}
 
 export default function LightsQuickControl() {
 	const { data, error, setLight } = useLights();

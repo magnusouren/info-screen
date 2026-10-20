@@ -6,17 +6,90 @@ import {
   LightbulbIcon as Lightbulb,
   PowerIcon as Power,
 } from "@phosphor-icons/react";
-import { brightnessFill } from "@/lib/colorUtils";
+import { averageOf, brightnessFill, kelvinFill } from "@/lib/colorUtils";
 import type { Light } from "@/lib/types/lights";
 import { useLights } from "@/lib/useLights";
 import Slider from "./Slider";
+
+const MIN_KELVIN = 2200;
+const MAX_KELVIN = 6500;
+const DEFAULT_KELVIN = 4000;
+
+type LightPatch = { switch?: "on" | "off"; level?: number; colorTemperature?: number };
+
+function RoomSliders({
+  lights,
+  onChange,
+}: {
+  lights: Light[];
+  onChange: (id: string, patch: LightPatch) => void;
+}) {
+  const dimmable = lights.filter((l) => l.level !== null);
+  const tunable = lights.filter((l) => l.colorTemperature !== null);
+
+  const liveLevelAvg = averageOf(
+    dimmable.filter((l) => l.switch === "on").map((l) => l.level!),
+  );
+  const [syncedLevelAvg, setSyncedLevelAvg] = useState(liveLevelAvg);
+  const [level, setLevel] = useState(liveLevelAvg ?? 50);
+  if (liveLevelAvg !== null && liveLevelAvg !== syncedLevelAvg) {
+    setSyncedLevelAvg(liveLevelAvg);
+    setLevel(liveLevelAvg);
+  }
+
+  const liveTempAvg = averageOf(
+    tunable.filter((l) => l.switch === "on").map((l) => l.colorTemperature!),
+  );
+  const [syncedTempAvg, setSyncedTempAvg] = useState(liveTempAvg);
+  const [temp, setTemp] = useState(liveTempAvg ?? DEFAULT_KELVIN);
+  if (liveTempAvg !== null && liveTempAvg !== syncedTempAvg) {
+    setSyncedTempAvg(liveTempAvg);
+    setTemp(liveTempAvg);
+  }
+
+  if (dimmable.length === 0 && tunable.length === 0) return null;
+
+  return (
+    <div className="flex flex-col gap-3 pb-3 mb-2 border-b border-border/60">
+      {dimmable.length > 0 && (
+        <Slider
+          value={level}
+          min={1}
+          max={100}
+          onChange={setLevel}
+          onCommit={(next) => {
+            for (const l of dimmable) onChange(l.id, { switch: "on", level: next });
+          }}
+          ariaLabel="Dimme alle lys i rommet"
+          indicatorColor={brightnessFill(level)}
+          className="w-full"
+        />
+      )}
+      {tunable.length > 0 && (
+        <Slider
+          value={temp}
+          min={MIN_KELVIN}
+          max={MAX_KELVIN}
+          step={100}
+          onChange={setTemp}
+          onCommit={(next) => {
+            for (const l of tunable) onChange(l.id, { switch: "on", colorTemperature: next });
+          }}
+          ariaLabel="Fargetemperatur for alle lys i rommet"
+          indicatorColor={kelvinFill(temp, MIN_KELVIN, MAX_KELVIN)}
+          className="w-full"
+        />
+      )}
+    </div>
+  );
+}
 
 function LightRow({
   light,
   onChange,
 }: {
   light: Light;
-  onChange: (id: string, patch: { switch?: "on" | "off"; level?: number }) => void;
+  onChange: (id: string, patch: LightPatch) => void;
 }) {
   const [syncedLevel, setSyncedLevel] = useState(light.level);
   const [level, setLevel] = useState(light.level ?? 100);
@@ -72,13 +145,14 @@ function RoomSection({
 }: {
   name: string;
   lights: Light[];
-  onChange: (id: string, patch: { switch?: "on" | "off"; level?: number }) => void;
+  onChange: (id: string, patch: LightPatch) => void;
 }) {
   return (
     <div>
       <div className="text-xs text-text-3 uppercase tracking-widest mb-1">
         {name}
       </div>
+      <RoomSliders lights={lights} onChange={onChange} />
       <div className="divide-y divide-border/60">
         {lights.map((l) => (
           <LightRow key={l.id} light={l} onChange={onChange} />
