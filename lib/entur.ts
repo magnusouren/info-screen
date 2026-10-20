@@ -4,6 +4,7 @@ import type {
   StopDepartures,
   NearbyStopDepartures,
 } from "@/lib/types/bus";
+import type { TripPattern } from "@/lib/types/trip";
 
 const ET_CLIENT_NAME = "infoskjerm-privat";
 const GRAPHQL_URL = "https://api.entur.io/journey-planner/v3/graphql";
@@ -111,6 +112,10 @@ interface NearestStopsResponse {
   };
 }
 
+// Stoppesteder man aldri reiser fra, uavhengig av hvor nære de er
+// (f.eks. feil side av veien / ikke faktisk brukbart i praksis).
+const BLACKLISTED_STOP_IDS = new Set(["NSR:StopPlace:58254"]);
+
 export async function fetchNearbyStops(
   lat: number,
   lon: number,
@@ -136,7 +141,9 @@ export async function fetchNearbyStops(
 
     const distanceById = new Map<string, number>();
     for (const edge of edges) {
-      if (edge.node.place) distanceById.set(edge.node.place.id, edge.node.distance);
+      if (edge.node.place && !BLACKLISTED_STOP_IDS.has(edge.node.place.id)) {
+        distanceById.set(edge.node.place.id, edge.node.distance);
+      }
     }
     const stopIds = [...distanceById.keys()];
     if (stopIds.length === 0) return [];
@@ -155,6 +162,126 @@ export async function fetchNearbyStops(
     });
     nearby.sort((a, b) => a.distanceMeters - b.distanceMeters);
     return nearby;
+  } catch {
+    return [];
+  }
+}
+
+const TRIP_QUERY = `
+query Trip($from: Location!, $to: Location!, $numTripPatterns: Int!) {
+  trip(from: $from, to: $to, numTripPatterns: $numTripPatterns) {
+    tripPatterns {
+      expectedStartTime
+      expectedEndTime
+      duration
+      walkDistance
+      legs {
+        mode
+        distance
+        duration
+        expectedStartTime
+        expectedEndTime
+        line {
+          publicCode
+          presentation { colour }
+        }
+        fromPlace { name }
+        toPlace { name }
+      }
+    }
+  }
+}
+`;
+
+interface TripResponse {
+  data: {
+    trip: {
+      tripPatterns: {
+        expectedStartTime: string;
+        expectedEndTime: string;
+        duration: number;
+        walkDistance: number;
+        legs: {
+          mode: string;
+          distance: number;
+          duration: number;
+          expectedStartTime: string;
+          expectedEndTime: string;
+          line: {
+            publicCode: string;
+            presentation: { colour: string | null } | null;
+          } | null;
+          fromPlace: { name: string };
+          toPlace: { name: string };
+        }[];
+      }[];
+    } | null;
+  };
+}
+
+export async function fetchTrip(
+  from: { lat: number; lon: number; name: string },
+  to: { lat: number; lon: number; name: string },
+  numTripPatterns = 5
+): Promise<TripPattern[]> {
+  try {
+    const res = await fetchWithTimeout(GRAPHQL_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "ET-Client-Name": ET_CLIENT_NAME,
+      },
+      body: JSON.stringify({
+        query: TRIP_QUERY,
+        variables: {
+          from: { coordinates: { latitude: from.lat, longitude: from.lon }, name: from.name },
+          to: { coordinates: { latitude: to.lat, longitude: to.lon }, name: to.name },
+          numTripPatterns,
+        },
+      }),
+      cache: "no-store",
+    });
+    if (!res.ok) return [];
+    const raw: TripResponse = await res.json();
+    const patterns = raw.data.trip?.tripPatterns ?? [];
+    const mapped: TripPattern[] = patterns.map((p) => ({
+      expectedStartTime: p.expectedStartTime,
+      expectedEndTime: p.expectedEndTime,
+      durationSeconds: p.duration,
+      walkDistanceMeters: Math.round(p.walkDistance),
+      legs: p.legs.map((l) => ({
+        mode: l.mode,
+        line: l.line?.publicCode ?? null,
+        lineColor: l.line?.presentation?.colour ?? null,
+        fromName: l.fromPlace.name,
+        toName: l.toPlace.name,
+        durationSeconds: l.duration,
+        distanceMeters: Math.round(l.distance),
+        expectedStartTime: l.expectedStartTime,
+        expectedEndTime: l.expectedEndTime,
+      })),
+    }));
+
+    // Prefer transit over a pure walk — a direct walk can otherwise outrank
+    // a transit option that actually arrives sooner. Only fall back to a
+    // walk-only pattern when no transit option exists at all.
+    const hasTransit = mapped.some((p) => p.legs.some((l) => l.mode !== "foot"));
+    const filtered = hasTransit
+      ? mapped.filter((p) => p.legs.some((l) => l.mode !== "foot"))
+      : mapped;
+
+    filtered.sort(
+      (a, b) => new Date(a.expectedEndTime).getTime() - new Date(b.expectedEndTime).getTime()
+    );
+
+    // No transit option, and the only thing on offer is a trivial walk (e.g.
+    // you're already basically there) — nothing meaningful to show.
+    const TRIVIAL_WALK_SECONDS = 5 * 60;
+    if (!hasTransit && filtered.length > 0 && filtered[0].durationSeconds < TRIVIAL_WALK_SECONDS) {
+      return [];
+    }
+
+    return filtered;
   } catch {
     return [];
   }
