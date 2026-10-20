@@ -26,6 +26,7 @@ import {
 } from "@/lib/saved-places";
 import type { NearbyStopDepartures } from "@/lib/types/bus";
 import type { CityBikeStation } from "@/lib/types/citybike";
+import type { ServiceJourneyDetails } from "@/lib/types/serviceJourney";
 import type { PlaceSearchResult, TripPattern } from "@/lib/types/trip";
 
 const POLL_MS = 30 * 1000;
@@ -33,6 +34,8 @@ const BIKE_LIMIT = 3;
 const SEARCH_DEBOUNCE_MS = 300;
 const STOPS_FETCH_LIMIT = 8;
 const STOPS_PREVIEW_COUNT = 3;
+const DEPARTURES_FETCH_LIMIT = 10;
+const DEPARTURES_PREVIEW_COUNT = 5;
 
 function formatDistance(meters: number): string {
   if (meters < 1000) return `${meters} m`;
@@ -229,6 +232,138 @@ function TripCard({
   );
 }
 
+function ServiceJourneyModal({
+  serviceJourneyId,
+  fromStopName,
+  destination,
+  line,
+  lineColor,
+  onClose,
+}: {
+  serviceJourneyId: string;
+  fromStopName: string;
+  destination: string;
+  line: string;
+  lineColor: string | null;
+  onClose: () => void;
+}) {
+  const [details, setDetails] = useState<ServiceJourneyDetails | null>(null);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/service-journey?id=${encodeURIComponent(serviceJourneyId)}`)
+      .then((res) => {
+        if (!res.ok) throw new Error();
+        return res.json() as Promise<ServiceJourneyDetails>;
+      })
+      .then((json) => {
+        if (!cancelled) setDetails(json);
+      })
+      .catch(() => {
+        if (!cancelled) setError(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [serviceJourneyId]);
+
+  const calls = (() => {
+    if (!details) return [];
+    const idx = details.calls.findIndex((c) => c.stopName === fromStopName);
+    return idx >= 0 ? details.calls.slice(idx) : details.calls;
+  })();
+
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-8"
+      onClick={onClose}
+    >
+      <div
+        className="bg-surface border border-border rounded-2xl w-full max-w-md max-h-[85vh] flex flex-col shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-3 p-5 border-b border-border">
+          <div className="flex items-center gap-2 min-w-0">
+            <span
+              className="text-xs font-medium text-text-2 bg-surface-2 rounded px-1.5 py-0.5 tabular-nums shrink-0"
+              style={
+                lineColor
+                  ? { backgroundColor: hexToRgba(lineColor, 0.4), color: lineColor }
+                  : undefined
+              }
+            >
+              {line}
+            </span>
+            <div className="min-w-0">
+              <div className="text-text-2 font-light truncate">{destination}</div>
+              {details?.operatorName && (
+                <div className="text-text-5 text-xs truncate">{details.operatorName}</div>
+              )}
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            aria-label="Lukk"
+            className="text-text-3 hover:text-text-2 transition-colors -mr-1 -mt-1 p-1 shrink-0"
+          >
+            <X size={20} weight="light" />
+          </button>
+        </div>
+
+        {details && details.notices.length > 0 && (
+          <div className="px-5 py-2 border-b border-border bg-live/10 text-live text-xs">
+            {details.notices.join(" · ")}
+          </div>
+        )}
+
+        <div className="overflow-y-auto flex-1">
+          {!details ? (
+            <div className="text-text-5 text-sm animate-pulse p-5">
+              {error ? "Reisedetaljer utilgjengelig" : "Laster…"}
+            </div>
+          ) : calls.length === 0 ? (
+            <div className="text-text-4 text-sm p-5">Ingen holdeplasser funnet</div>
+          ) : (
+            <ul className="divide-y divide-border/60">
+              {calls.map((call, i) => (
+                <li key={i} className="flex items-center gap-3 px-5 py-2.5">
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                      i === 0 ? "bg-accent" : "bg-text-5"
+                    }`}
+                  />
+                  <span
+                    className={`flex-1 truncate font-light ${
+                      i === 0 ? "text-text-2" : "text-text-3"
+                    }`}
+                  >
+                    {call.stopName}
+                  </span>
+                  {!call.realtime && (
+                    <span className="text-text-5 text-[10px] shrink-0">rutetid</span>
+                  )}
+                  <span className="text-xs tabular-nums shrink-0 text-text-3">
+                    {formatClock(call.expectedArrivalTime)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function NearbyPage() {
   const [coords, setCoords] = useState<Coords>(null);
   const [coordsResolved, setCoordsResolved] = useState(false);
@@ -237,8 +372,16 @@ export default function NearbyPage() {
   const [stations, setStations] = useState<CityBikeStation[] | null>(null);
   const [stationsError, setStationsError] = useState(false);
   const [stopsExpanded, setStopsExpanded] = useState(false);
+  const [expandedDepartures, setExpandedDepartures] = useState<Set<string>>(new Set());
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [openJourney, setOpenJourney] = useState<{
+    serviceJourneyId: string;
+    fromStopName: string;
+    destination: string;
+    line: string;
+    lineColor: string | null;
+  } | null>(null);
 
   const places = useSyncExternalStore(subscribePlaces, getPlaces, getServerPlaces);
   const [trips, setTrips] = useState<Record<string, TripPattern[] | null>>({});
@@ -264,6 +407,7 @@ export default function NearbyPage() {
     }
     const stopsParams = new URLSearchParams(params);
     stopsParams.set("maxStops", String(STOPS_FETCH_LIMIT));
+    stopsParams.set("count", String(DEPARTURES_FETCH_LIMIT));
     const bikeParams = new URLSearchParams(params);
     bikeParams.set("limit", String(BIKE_LIMIT));
 
@@ -450,8 +594,24 @@ export default function NearbyPage() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  {stop.departures.map((dep, i) => (
-                    <div key={i} className="flex items-center gap-3 text-sm">
+                  {(expandedDepartures.has(stop.stopId)
+                    ? stop.departures
+                    : stop.departures.slice(0, DEPARTURES_PREVIEW_COUNT)
+                  ).map((dep, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() =>
+                        setOpenJourney({
+                          serviceJourneyId: dep.serviceJourneyId,
+                          fromStopName: stop.stopName,
+                          destination: dep.destination,
+                          line: dep.line,
+                          lineColor: dep.color,
+                        })
+                      }
+                      className="w-full flex items-center gap-3 text-sm -mx-1 px-1 py-0.5 rounded-lg hover:bg-surface/70 transition-colors text-left"
+                    >
                       <span
                         className="w-8 text-center text-xs font-medium text-text-2 bg-surface-2 rounded px-1 py-0.5 tabular-nums shrink-0"
                         style={
@@ -475,8 +635,22 @@ export default function NearbyPage() {
                             ? dep.expectedTime
                             : `${dep.minutesUntil} min`}
                       </span>
-                    </div>
+                    </button>
                   ))}
+                  {!expandedDepartures.has(stop.stopId) &&
+                    stop.departures.length > DEPARTURES_PREVIEW_COUNT && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExpandedDepartures((prev) => new Set(prev).add(stop.stopId))
+                        }
+                        aria-label={`Vis flere avganger for ${stop.stopName}`}
+                        className="w-full flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-text-4 hover:text-text-2 hover:bg-surface/70 transition-colors text-xs"
+                      >
+                        <Plus size={12} weight="light" />
+                        Vis flere
+                      </button>
+                    )}
                 </div>
               </div>
             ))}
@@ -547,6 +721,17 @@ export default function NearbyPage() {
         <div className="text-text-5 text-[10px] font-light tracking-wider pt-6">
           Oppdatert: {updatedAt}
         </div>
+      )}
+
+      {openJourney && (
+        <ServiceJourneyModal
+          serviceJourneyId={openJourney.serviceJourneyId}
+          fromStopName={openJourney.fromStopName}
+          destination={openJourney.destination}
+          line={openJourney.line}
+          lineColor={openJourney.lineColor}
+          onClose={() => setOpenJourney(null)}
+        />
       )}
     </main>
   );

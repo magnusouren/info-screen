@@ -153,6 +153,7 @@ query StopDepartures($id: String!, $count: Int!) {
       expectedDepartureTime
       destinationDisplay { frontText }
       serviceJourney {
+        id
         journeyPattern {
           line { publicCode transportMode }
         }
@@ -202,6 +203,7 @@ async function fetchOneStop(
           }),
           minutesUntil: Math.round((exp.getTime() - now.getTime()) / 60000),
           color: null,
+          serviceJourneyId: call.serviceJourney.id,
         };
       }),
     };

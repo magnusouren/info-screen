@@ -5,6 +5,7 @@ import type {
   NearbyStopDepartures,
 } from "@/lib/types/bus";
 import type { TripPattern } from "@/lib/types/trip";
+import type { ServiceJourneyDetails } from "@/lib/types/serviceJourney";
 
 const ET_CLIENT_NAME = "infoskjerm-privat";
 const GRAPHQL_URL = "https://api.entur.io/journey-planner/v3/graphql";
@@ -17,6 +18,7 @@ query StopDepartures($id: String!, $count: Int!) {
       expectedDepartureTime
       destinationDisplay { frontText }
       serviceJourney {
+        id
         journeyPattern {
           line {
             publicCode
@@ -67,8 +69,88 @@ export async function fetchStop(
           }),
           minutesUntil: Math.round((exp.getTime() - now.getTime()) / 60000),
           color: call.serviceJourney.journeyPattern.line.presentation?.colour ?? null,
+          serviceJourneyId: call.serviceJourney.id,
         };
       }),
+    };
+  } catch {
+    return null;
+  }
+}
+
+const SERVICE_JOURNEY_QUERY = `
+query ServiceJourney($id: String!) {
+  serviceJourney(id: $id) {
+    line {
+      publicCode
+      name
+      presentation { colour }
+    }
+    operator { name }
+    notices { text }
+    estimatedCalls {
+      quay { name }
+      expectedArrivalTime
+      aimedArrivalTime
+      realtime
+      forBoarding
+      forAlighting
+    }
+  }
+}
+`;
+
+interface ServiceJourneyResponse {
+  data: {
+    serviceJourney: {
+      line: { publicCode: string; name: string; presentation: { colour: string | null } | null };
+      operator: { name: string } | null;
+      notices: { text: string }[];
+      estimatedCalls: {
+        quay: { name: string };
+        expectedArrivalTime: string;
+        aimedArrivalTime: string;
+        realtime: boolean;
+        forBoarding: boolean;
+        forAlighting: boolean;
+      }[];
+    } | null;
+  };
+}
+
+export async function fetchServiceJourney(id: string): Promise<ServiceJourneyDetails | null> {
+  try {
+    const res = await fetchWithTimeout(GRAPHQL_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "ET-Client-Name": ET_CLIENT_NAME,
+      },
+      body: JSON.stringify({
+        query: SERVICE_JOURNEY_QUERY,
+        variables: { id },
+      }),
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    const raw: ServiceJourneyResponse = await res.json();
+    const sj = raw.data.serviceJourney;
+    if (!sj) return null;
+
+    return {
+      line: sj.line.publicCode,
+      lineName: sj.line.name,
+      lineColor: sj.line.presentation?.colour ?? null,
+      operatorName: sj.operator?.name ?? null,
+      notices: sj.notices.map((n) => n.text),
+      calls: sj.estimatedCalls.map((c) => ({
+        stopName: c.quay.name,
+        expectedArrivalTime: c.expectedArrivalTime,
+        aimedArrivalTime: c.aimedArrivalTime,
+        realtime: c.realtime,
+        forBoarding: c.forBoarding,
+        forAlighting: c.forAlighting,
+      })),
     };
   } catch {
     return null;

@@ -7,6 +7,7 @@ export interface EstimatedCall {
   expectedDepartureTime: string;
   destinationDisplay: { frontText: string };
   serviceJourney: {
+    id: string;
     journeyPattern: {
       line: {
         publicCode: string;
@@ -32,6 +33,7 @@ export interface Departure {
   expectedTime: string;
   minutesUntil: number;
   color: string | null;
+  serviceJourneyId: string;
 }
 
 export interface StopDepartures {
