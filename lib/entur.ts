@@ -263,12 +263,19 @@ query Trip($from: Location!, $to: Location!, $numTripPatterns: Int!) {
         duration
         expectedStartTime
         expectedEndTime
+        realtime
         line {
           publicCode
+          name
           presentation { colour }
         }
         fromPlace { name }
         toPlace { name }
+        serviceJourney {
+          id
+          operator { name }
+        }
+        situations { summary { value } }
       }
     }
   }
@@ -289,12 +296,16 @@ interface TripResponse {
           duration: number;
           expectedStartTime: string;
           expectedEndTime: string;
+          realtime: boolean;
           line: {
             publicCode: string;
+            name: string;
             presentation: { colour: string | null } | null;
           } | null;
           fromPlace: { name: string };
           toPlace: { name: string };
+          serviceJourney: { id: string; operator: { name: string } | null } | null;
+          situations: { summary: { value: string }[] }[];
         }[];
       }[];
     } | null;
@@ -335,12 +346,17 @@ export async function fetchTrip(
         mode: l.mode,
         line: l.line?.publicCode ?? null,
         lineColor: l.line?.presentation?.colour ?? null,
+        lineName: l.line?.name ?? null,
         fromName: l.fromPlace.name,
         toName: l.toPlace.name,
         durationSeconds: l.duration,
         distanceMeters: Math.round(l.distance),
         expectedStartTime: l.expectedStartTime,
         expectedEndTime: l.expectedEndTime,
+        realtime: l.realtime,
+        serviceJourneyId: l.serviceJourney?.id ?? null,
+        operatorName: l.serviceJourney?.operator?.name ?? null,
+        situations: l.situations.flatMap((s) => s.summary.map((m) => m.value)),
       })),
     }));
 

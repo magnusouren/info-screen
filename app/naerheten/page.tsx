@@ -156,11 +156,13 @@ function TripCard({
   patterns,
   error,
   onRemove,
+  onOpenDetails,
 }: {
   place: SavedPlace;
   patterns: TripPattern[] | null | undefined;
   error: boolean | undefined;
   onRemove: () => void;
+  onOpenDetails: (pattern: TripPattern) => void;
 }) {
   const top = patterns?.slice(0, 2) ?? [];
 
@@ -187,7 +189,14 @@ function TripCard({
       ) : (
         <div className="space-y-3">
           {top.map((pattern, idx) => (
-            <div key={idx} className={idx > 0 ? "pt-3 border-t border-border/60" : undefined}>
+            <button
+              key={idx}
+              type="button"
+              onClick={() => onOpenDetails(pattern)}
+              className={`w-full text-left rounded-lg -mx-1 px-1 hover:bg-surface/70 transition-colors ${
+                idx > 0 ? "pt-3 mt-3 border-t border-border/60" : ""
+              }`}
+            >
               <div className="flex items-center gap-2 text-sm">
                 {pattern.legs.map((leg, i) => {
                   const Icon = modeIcon(leg.mode);
@@ -224,10 +233,142 @@ function TripCard({
                 </span>
                 <span className="tabular-nums">{formatDuration(pattern.durationSeconds)}</span>
               </div>
-            </div>
+            </button>
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function TripDetailsModal({
+  place,
+  pattern,
+  onClose,
+  onOpenServiceJourney,
+}: {
+  place: SavedPlace;
+  pattern: TripPattern;
+  onClose: () => void;
+  onOpenServiceJourney: (args: {
+    serviceJourneyId: string;
+    fromStopName: string;
+    destination: string;
+    line: string;
+    lineColor: string | null;
+  }) => void;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-8"
+      onClick={onClose}
+    >
+      <div
+        className="bg-surface border border-border rounded-2xl w-full max-w-md max-h-[85vh] flex flex-col shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-3 p-5 border-b border-border">
+          <div>
+            <div className="text-text-2 font-light">Til {place.name}</div>
+            <div className="text-text-4 text-xs mt-0.5 tabular-nums">
+              {formatClock(pattern.expectedStartTime)} – {formatClock(pattern.expectedEndTime)} ·{" "}
+              {formatDuration(pattern.durationSeconds)}
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            aria-label="Lukk"
+            className="text-text-3 hover:text-text-2 transition-colors -mr-1 -mt-1 p-1 shrink-0"
+          >
+            <X size={20} weight="light" />
+          </button>
+        </div>
+
+        <div className="overflow-y-auto flex-1 p-5">
+          <div className="flex items-baseline justify-between">
+            <span className="text-text-2 text-sm font-light">
+              {pattern.legs[0].fromName}
+            </span>
+            <span className="text-text-4 text-xs tabular-nums shrink-0">
+              {formatClock(pattern.expectedStartTime)}
+            </span>
+          </div>
+
+          {pattern.legs.map((leg, i) => {
+            const Icon = modeIcon(leg.mode);
+            const isTransit = leg.mode !== "foot";
+            return (
+              <div key={i}>
+                <div className="flex items-start gap-2 pl-1 py-2 border-l border-border ml-[7px]">
+                  <Icon size={14} weight="light" className="text-text-4 -ml-[15px] bg-surface shrink-0 mt-0.5" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 flex-wrap text-xs">
+                      {leg.line && (
+                        <span
+                          className="font-medium text-text-2 bg-surface-2 rounded px-1 py-0.5 tabular-nums"
+                          style={
+                            leg.lineColor
+                              ? {
+                                  backgroundColor: hexToRgba(leg.lineColor, 0.4),
+                                  color: leg.lineColor,
+                                }
+                              : undefined
+                          }
+                        >
+                          {leg.line}
+                        </span>
+                      )}
+                      <span className="text-text-3">
+                        {isTransit
+                          ? [leg.lineName, leg.operatorName].filter(Boolean).join(" · ")
+                          : `Gange · ${leg.distanceMeters} m`}
+                      </span>
+                      <span className="text-text-5">· {formatDuration(leg.durationSeconds)}</span>
+                      {isTransit && !leg.realtime && (
+                        <span className="text-text-5">· rutetid</span>
+                      )}
+                    </div>
+                    {leg.situations.length > 0 && (
+                      <div className="text-live text-xs mt-1">{leg.situations.join(" · ")}</div>
+                    )}
+                    {isTransit && leg.serviceJourneyId && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onOpenServiceJourney({
+                            serviceJourneyId: leg.serviceJourneyId!,
+                            fromStopName: leg.fromName,
+                            destination: leg.toName,
+                            line: leg.line ?? "",
+                            lineColor: leg.lineColor,
+                          })
+                        }
+                        className="text-accent text-xs mt-1 hover:underline"
+                      >
+                        Vis hele ruta
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-baseline justify-between">
+                  <span className="text-text-2 text-sm font-light truncate">{leg.toName}</span>
+                  <span className="text-text-4 text-xs tabular-nums shrink-0">
+                    {formatClock(leg.expectedEndTime)}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
@@ -381,6 +522,10 @@ export default function NearbyPage() {
     destination: string;
     line: string;
     lineColor: string | null;
+  } | null>(null);
+  const [openTripDetails, setOpenTripDetails] = useState<{
+    place: SavedPlace;
+    pattern: TripPattern;
   } | null>(null);
 
   const places = useSyncExternalStore(subscribePlaces, getPlaces, getServerPlaces);
@@ -561,6 +706,7 @@ export default function NearbyPage() {
                   patterns={trips[place.id]}
                   error={tripErrors[place.id]}
                   onRemove={() => removePlace(place.id)}
+                  onOpenDetails={(pattern) => setOpenTripDetails({ place, pattern })}
                 />
               ))}
           </div>
@@ -721,6 +867,15 @@ export default function NearbyPage() {
         <div className="text-text-5 text-[10px] font-light tracking-wider pt-6">
           Oppdatert: {updatedAt}
         </div>
+      )}
+
+      {openTripDetails && (
+        <TripDetailsModal
+          place={openTripDetails.place}
+          pattern={openTripDetails.pattern}
+          onClose={() => setOpenTripDetails(null)}
+          onOpenServiceJourney={setOpenJourney}
+        />
       )}
 
       {openJourney && (

@@ -2,12 +2,17 @@ export interface TripLeg {
   mode: string;
   line: string | null;
   lineColor: string | null;
+  lineName: string | null;
   fromName: string;
   toName: string;
   durationSeconds: number;
   distanceMeters: number;
   expectedStartTime: string;
   expectedEndTime: string;
+  realtime: boolean;
+  serviceJourneyId: string | null;
+  operatorName: string | null;
+  situations: string[];
 }
 
 export interface TripPattern {
