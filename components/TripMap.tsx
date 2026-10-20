@@ -10,7 +10,13 @@ const FALLBACK_TRANSIT_COLOR = "#34d399";
 const START_COLOR = "#34d399";
 const END_COLOR = "#f87171";
 
-export default function TripMap({ legs }: { legs: TripLeg[] }) {
+export default function TripMap({
+  legs,
+  className = "",
+}: {
+  legs: TripLeg[];
+  className?: string;
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -21,14 +27,15 @@ export default function TripMap({ legs }: { legs: TripLeg[] }) {
     import("leaflet").then((L) => {
       if (cancelled || !containerRef.current) return;
 
-      map = L.map(containerRef.current, { attributionControl: false });
+      map = L.map(containerRef.current, { attributionControl: false, maxZoom: 16 });
       L.control.attribution({ prefix: false }).addTo(map).addAttribution(
-        "&copy; OpenStreetMap-bidragsytere"
+        "Esri &mdash; HERE, Garmin, OpenStreetMap"
       );
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19,
-      }).addTo(map);
+      L.tileLayer(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+        { maxZoom: 16 }
+      ).addTo(map);
 
       const bounds: [number, number][] = [];
 
@@ -88,5 +95,10 @@ export default function TripMap({ legs }: { legs: TripLeg[] }) {
     };
   }, [legs]);
 
-  return <div ref={containerRef} className="w-full h-48 rounded-xl overflow-hidden" />;
+  return (
+    <div
+      ref={containerRef}
+      className={`trip-map w-full h-48 rounded-xl overflow-hidden border border-border ${className}`}
+    />
+  );
 }

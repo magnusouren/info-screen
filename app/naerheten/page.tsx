@@ -294,8 +294,7 @@ function TripDetailsModal({
         </div>
 
         <div className="overflow-y-auto flex-1 p-5">
-          <TripMap legs={pattern.legs} />
-          <div className="flex items-baseline justify-between mt-4">
+          <div className="flex items-baseline justify-between">
             <span className="text-text-2 text-sm font-light">
               {pattern.legs[0].fromName}
             </span>
@@ -369,6 +368,8 @@ function TripDetailsModal({
               </div>
             );
           })}
+
+          <TripMap legs={pattern.legs} className="mt-4" />
         </div>
       </div>
     </div>

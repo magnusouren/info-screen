@@ -94,3 +94,21 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
   padding-left: env(safe-area-inset-left);
 }
+
+/* Leaflet trip-route map — restyle the default light-mode chrome to match
+   the app's dark, muted look instead of Leaflet's stock white controls. */
+.trip-map .leaflet-control-zoom a {
+  background: var(--surface);
+  color: var(--text-2);
+  border-color: var(--border) !important;
+}
+.trip-map .leaflet-control-zoom a:hover {
+  background: var(--surface-2);
+}
+.trip-map .leaflet-control-attribution {
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  color: var(--text-4);
+}
+.trip-map .leaflet-control-attribution a {
+  color: var(--text-3);
+}
