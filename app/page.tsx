@@ -60,7 +60,7 @@ export default function Page() {
 						<Scenes />
 					</ErrorBoundary>
 					<div className="border-t border-border" />
-					<div className="sm:flex-1 sm:min-h-0 flex flex-col">
+					<div className="sm:flex-1 sm:min-h-0">
 						<ErrorBoundary label="Nyheter">
 							<News />
 						</ErrorBoundary>
@@ -70,7 +70,7 @@ export default function Page() {
 				<div className="border-t border-border sm:border-t-0 sm:bg-border" />
 
 				<div className="min-w-0 overflow-hidden flex flex-col gap-4 lg:gap-6">
-					<div className="sm:flex-1 sm:min-h-0">
+					<div className="sm:flex-1 sm:min-h-0 flex flex-col">
 						<ErrorBoundary label="Lys">
 							<LightsQuickControl />
 						</ErrorBoundary>
