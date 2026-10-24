@@ -61,8 +61,8 @@ export default function Page() {
 					</ErrorBoundary>
 					<div className="border-t border-border" />
 					<div className="sm:flex-1 sm:min-h-0 flex flex-col">
-						<ErrorBoundary label="Lys">
-							<LightsQuickControl />
+						<ErrorBoundary label="Nyheter">
+							<News />
 						</ErrorBoundary>
 					</div>
 				</div>
@@ -71,8 +71,8 @@ export default function Page() {
 
 				<div className="min-w-0 overflow-hidden flex flex-col gap-4 lg:gap-6">
 					<div className="sm:flex-1 sm:min-h-0">
-						<ErrorBoundary label="Nyheter">
-							<News />
+						<ErrorBoundary label="Lys">
+							<LightsQuickControl />
 						</ErrorBoundary>
 					</div>
 					<div className="border-t border-border shrink-0" />
