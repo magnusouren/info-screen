@@ -73,7 +73,7 @@ function RoomHeader({
           }}
           ariaLabel={`Dimme alle lys i ${name}`}
           indicatorColor={brightnessFill(level)}
-          className="flex-1 max-w-40 ml-auto"
+          className="flex-1 sm:max-w-40 ml-auto"
         />
       )}
     </div>
@@ -99,7 +99,7 @@ function RoomSection({
         <div className="text-xs text-text-3 uppercase tracking-widest mb-3">{name}</div>
       )}
 
-      <div className="flex flex-wrap gap-x-4 gap-y-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-x-4 sm:gap-y-5">
         {items.map((item) =>
           item.kind === "single" ? (
             <LightTile key={item.light.id} light={item.light} onChange={onChange} />

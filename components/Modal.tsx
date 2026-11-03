@@ -45,7 +45,7 @@ export default function Modal({
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center p-8 bg-black/70 backdrop-blur-sm transition-opacity ${
+      className={`fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-8 bg-black/70 backdrop-blur-sm transition-opacity ${
         visible ? "opacity-100" : "opacity-0"
       }`}
       style={{ transitionDuration: `${visible ? ENTER_MS : EXIT_MS}ms` }}

@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react";
 import { LightbulbIcon as Lightbulb } from "@phosphor-icons/react";
 import { brightnessFill, kelvinFill, kelvinGradient } from "@/lib/colorUtils";
 import type { Light } from "@/lib/types/lights";
+import Slider from "./Slider";
 import VerticalSlider from "./VerticalSlider";
 
 const MIN_KELVIN = 2200;
@@ -52,21 +53,72 @@ export function LightTileShell({
   const height = compact ? "h-24" : "h-32";
   const disabled = sliderDisabled ?? !on;
 
+  const powerButton = (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-pressed={on}
+      aria-label={`Slå ${on ? "av" : "på"} ${label}`}
+      className={`flex items-center justify-center rounded-full border shrink-0 transition-colors ${
+        compact ? "w-7 h-7" : "w-8 h-8"
+      } ${on ? "bg-accent/20 border-accent text-accent" : "bg-surface border-border text-text-4"}`}
+    >
+      <Lightbulb size={compact ? 13 : 15} weight={on ? "fill" : "light"} />
+    </button>
+  );
+
   return (
-    <div className={`flex flex-col items-center gap-2 ${compact ? "w-16" : "w-20"} shrink-0`}>
+    <>
+      {/* Mobile: label row on top, full-width horizontal slider(s) below —
+       *  gives the slider the whole row to drag along instead of squeezing
+       *  it between a label and a readout on a narrow touchscreen. */}
+      <div className="flex sm:hidden flex-col gap-1.5 w-full">
+        <div className="flex items-center gap-2">
+          {powerButton}
+          <div className="flex-1 text-text-2 font-light text-sm truncate">{label}</div>
+          <div className="shrink-0 text-[11px] text-text-4 tabular-nums">
+            {dimmable ? (on ? `${level}%` : "–") : ""}
+          </div>
+          {corner}
+        </div>
+
+        <div className="flex flex-col gap-2 pl-10">
+          {dimmable && (
+            <Slider
+              value={level}
+              min={1}
+              max={100}
+              disabled={disabled}
+              onChange={onLevelChange}
+              onCommit={onLevelCommit}
+              ariaLabel={`Lysstyrke for ${label}`}
+              indicatorColor={brightnessFill(level)}
+              className="w-full"
+            />
+          )}
+          {tunable && (
+            <Slider
+              value={temp}
+              min={MIN_KELVIN}
+              max={MAX_KELVIN}
+              step={100}
+              disabled={disabled}
+              onChange={onTempChange}
+              onCommit={onTempCommit}
+              ariaLabel={`Fargetemperatur for ${label}`}
+              indicatorColor={kelvinFill(temp, MIN_KELVIN, MAX_KELVIN)}
+              className="w-full"
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Desktop: a vertical "channel strip" fader — reads as a mixing-console
+       *  panel when several sit side by side in a room's tile grid. */}
+      <div className={`hidden sm:flex relative flex-col items-center gap-2 ${compact ? "w-16" : "w-20"} shrink-0`}>
       <div className="relative">
         {corner && <div className="absolute -top-1.5 -right-1.5 z-10">{corner}</div>}
-        <button
-          type="button"
-          onClick={onToggle}
-          aria-pressed={on}
-          aria-label={`Slå ${on ? "av" : "på"} ${label}`}
-          className={`flex items-center justify-center rounded-full border shrink-0 transition-colors ${
-            compact ? "w-7 h-7" : "w-8 h-8"
-          } ${on ? "bg-accent/20 border-accent text-accent" : "bg-surface border-border text-text-4"}`}
-        >
-          <Lightbulb size={compact ? 13 : 15} weight={on ? "fill" : "light"} />
-        </button>
+        {powerButton}
       </div>
 
       <div className="text-[10px] text-text-4 tabular-nums h-3.5 leading-none">
@@ -114,7 +166,8 @@ export function LightTileShell({
       >
         {label}
       </div>
-    </div>
+      </div>
+    </>
   );
 }
 

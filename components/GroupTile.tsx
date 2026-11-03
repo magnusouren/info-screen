@@ -95,7 +95,7 @@ export default function GroupTile({
         <span className="text-[11px] text-text-3 uppercase tracking-wide">{name}</span>
         {expandButton}
       </div>
-      <div className="flex gap-3">
+      <div className="flex flex-col gap-1.5 sm:flex-row sm:gap-3">
         {lights.map((l) => (
           <LightTile key={l.id} light={l} onChange={onChange} compact />
         ))}
