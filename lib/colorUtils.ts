@@ -49,10 +49,12 @@ export function kelvinFill(value: number, min: number, max: number): string {
     : mixRgb(KELVIN_WHITE, KELVIN_COOL, (t - 0.5) / 0.5);
 }
 
-// Same warm → white → cool ramp as kelvinFill, as a left-to-right CSS
-// gradient — for backgrounds that hint at the color-temperature axis itself.
-export function kelvinGradient(): string {
-  return `linear-gradient(to right, rgb(${KELVIN_WARM.join(", ")}), rgb(${KELVIN_WHITE.join(", ")}), rgb(${KELVIN_COOL.join(", ")}))`;
+// Same warm → white → cool ramp as kelvinFill, as a CSS gradient — for
+// backgrounds that hint at the color-temperature axis itself. Defaults to
+// left-to-right (LightPad's x-axis); pass "to top" for a vertical fader
+// where higher = cooler.
+export function kelvinGradient(direction: "to right" | "to top" = "to right"): string {
+  return `linear-gradient(${direction}, rgb(${KELVIN_WARM.join(", ")}), rgb(${KELVIN_WHITE.join(", ")}), rgb(${KELVIN_COOL.join(", ")}))`;
 }
 
 export function averageOf(values: number[]): number | null {

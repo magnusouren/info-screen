@@ -70,6 +70,15 @@ export const config = {
             'fb744aae-6342-47a1-9058-0547c837136d': 'Soverom',
             'b870030c-92d3-436a-8677-21b88be89c9d': 'Bod',
         } as Record<string, string>,
+
+        // Lys som skal vises samlet med én felles fader i lys-modalen (men kan
+        // utvides for å styre hvert lys for seg). Nøkkelen er gruppenavnet som
+        // vises i UI-et, verdien er de nøyaktige lys-labelene (slik de står i
+        // SmartThings-appen) som hører til gruppen.
+        lightGroups: {
+            Trippel: ['Trippel Topp', 'Trippel Midt', 'Trippel Nede 1'],
+            'Tak Kjøkken': ['Tak Kjøkken 1', 'Tak Kjøkken 2', 'Tak Kjøkken 3'],
+        } as Record<string, string[]>,
     },
 } as const;
 

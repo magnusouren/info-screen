@@ -6,20 +6,19 @@ import {
   LightbulbIcon as Lightbulb,
   PowerIcon as Power,
 } from "@phosphor-icons/react";
-import { averageOf, brightnessFill, kelvinFill } from "@/lib/colorUtils";
+import { averageOf, brightnessFill } from "@/lib/colorUtils";
+import { groupLights } from "@/lib/lightGroups";
 import type { Light } from "@/lib/types/lights";
 import { useLights } from "@/lib/useLights";
-import Slider from "./Slider";
+import GroupTile from "./GroupTile";
+import LightTile from "./LightTile";
 import Modal from "./Modal";
 import Skeleton from "./Skeleton";
-
-const MIN_KELVIN = 2200;
-const MAX_KELVIN = 6500;
-const DEFAULT_KELVIN = 4000;
+import Slider from "./Slider";
 
 type LightPatch = { switch?: "on" | "off"; level?: number; colorTemperature?: number };
 
-function RoomSliders({
+function RoomHeader({
   name,
   lights,
   onChange,
@@ -29,7 +28,6 @@ function RoomSliders({
   onChange: (id: string, patch: LightPatch) => void;
 }) {
   const dimmable = lights.filter((l) => l.level !== null);
-  const tunable = lights.filter((l) => l.colorTemperature !== null);
 
   const liveLevelAvg = averageOf(
     dimmable.filter((l) => l.switch === "on").map((l) => l.level!),
@@ -41,160 +39,42 @@ function RoomSliders({
     setLevel(liveLevelAvg);
   }
 
-  const liveTempAvg = averageOf(
-    tunable.filter((l) => l.switch === "on").map((l) => l.colorTemperature!),
-  );
-  const [syncedTempAvg, setSyncedTempAvg] = useState(liveTempAvg);
-  const [temp, setTemp] = useState(liveTempAvg ?? DEFAULT_KELVIN);
-  if (liveTempAvg !== null && liveTempAvg !== syncedTempAvg) {
-    setSyncedTempAvg(liveTempAvg);
-    setTemp(liveTempAvg);
-  }
-
-  if (dimmable.length === 0 && tunable.length === 0) return null;
-
   const anyOn = lights.some((l) => l.switch === "on");
   const toggleAll = () => {
     for (const l of lights) onChange(l.id, { switch: anyOn ? "off" : "on" });
   };
 
   return (
-    <div className="pb-3 mb-2 border-b border-border/60">
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={toggleAll}
-          aria-pressed={anyOn}
-          aria-label={`Slå ${anyOn ? "av" : "på"} alle lys i ${name}`}
-          className={`flex items-center justify-center w-8 h-8 rounded-full border shrink-0 transition-colors ${
-            anyOn
-              ? "bg-accent/20 border-accent text-accent"
-              : "bg-surface border-border text-text-4"
-          }`}
-        >
-          <Lightbulb size={15} weight={anyOn ? "fill" : "light"} />
-        </button>
+    <div className="flex items-center gap-3 mb-3">
+      <button
+        type="button"
+        onClick={toggleAll}
+        aria-pressed={anyOn}
+        aria-label={`Slå ${anyOn ? "av" : "på"} alle lys i ${name}`}
+        className={`flex items-center justify-center w-7 h-7 rounded-full border shrink-0 transition-colors ${
+          anyOn
+            ? "bg-accent/20 border-accent text-accent"
+            : "bg-surface border-border text-text-4"
+        }`}
+      >
+        <Lightbulb size={13} weight={anyOn ? "fill" : "light"} />
+      </button>
 
-        <div className="w-28 shrink-0 text-text-2 text-sm font-light truncate">
-          {name}
-        </div>
+      <div className="text-xs text-text-3 uppercase tracking-widest shrink-0">{name}</div>
 
-        {dimmable.length > 0 && (
-          <Slider
-            value={level}
-            min={1}
-            max={100}
-            onChange={setLevel}
-            onCommit={(next) => {
-              for (const l of dimmable) onChange(l.id, { switch: "on", level: next });
-            }}
-            ariaLabel={`Dimme alle lys i ${name}`}
-            indicatorColor={brightnessFill(level)}
-            className="flex-1"
-          />
-        )}
-      </div>
-
-      {tunable.length > 0 && (
-        <div className="flex items-center gap-3 mt-2">
-          <div className="w-8 shrink-0" />
-          <div className="w-28 shrink-0" />
-          <Slider
-            value={temp}
-            min={MIN_KELVIN}
-            max={MAX_KELVIN}
-            step={100}
-            onChange={setTemp}
-            onCommit={(next) => {
-              for (const l of tunable) onChange(l.id, { switch: "on", colorTemperature: next });
-            }}
-            ariaLabel={`Fargetemperatur for alle lys i ${name}`}
-            indicatorColor={kelvinFill(temp, MIN_KELVIN, MAX_KELVIN)}
-            className="flex-1"
-          />
-        </div>
-      )}
-    </div>
-  );
-}
-
-function LightRow({
-  light,
-  onChange,
-}: {
-  light: Light;
-  onChange: (id: string, patch: LightPatch) => void;
-}) {
-  const [syncedLevel, setSyncedLevel] = useState(light.level);
-  const [level, setLevel] = useState(light.level ?? 100);
-  if (light.level !== syncedLevel) {
-    setSyncedLevel(light.level);
-    setLevel(light.level ?? 100);
-  }
-
-  const [syncedTemp, setSyncedTemp] = useState(light.colorTemperature);
-  const [temp, setTemp] = useState(light.colorTemperature ?? DEFAULT_KELVIN);
-  if (light.colorTemperature !== syncedTemp) {
-    setSyncedTemp(light.colorTemperature);
-    setTemp(light.colorTemperature ?? DEFAULT_KELVIN);
-  }
-
-  const on = light.switch === "on";
-  const toggle = () => onChange(light.id, { switch: on ? "off" : "on" });
-
-  return (
-    <div className="py-2.5">
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={toggle}
-          aria-pressed={on}
-          aria-label={`Slå ${on ? "av" : "på"} ${light.label}`}
-          className={`flex items-center justify-center w-8 h-8 rounded-full border shrink-0 transition-colors ${
-            on
-              ? "bg-accent/20 border-accent text-accent"
-              : "bg-surface border-border text-text-4"
-          }`}
-        >
-          <Lightbulb size={15} weight={on ? "fill" : "light"} />
-        </button>
-
-        <div className="w-28 shrink-0 text-text-2 text-sm font-light truncate">
-          {light.label}
-        </div>
-
-        {light.level !== null && (
-          <Slider
-            value={level}
-            min={1}
-            max={100}
-            disabled={!on}
-            onChange={setLevel}
-            onCommit={(next) => onChange(light.id, { switch: "on", level: next })}
-            ariaLabel={`Lysstyrke for ${light.label}`}
-            indicatorColor={brightnessFill(level)}
-            className="flex-1"
-          />
-        )}
-      </div>
-
-      {light.colorTemperature !== null && (
-        <div className="flex items-center gap-3 mt-2">
-          <div className="w-8 shrink-0" />
-          <div className="w-28 shrink-0" />
-          <Slider
-            value={temp}
-            min={MIN_KELVIN}
-            max={MAX_KELVIN}
-            step={100}
-            disabled={!on}
-            onChange={setTemp}
-            onCommit={(next) => onChange(light.id, { switch: "on", colorTemperature: next })}
-            ariaLabel={`Fargetemperatur for ${light.label}`}
-            indicatorColor={kelvinFill(temp, MIN_KELVIN, MAX_KELVIN)}
-            className="flex-1"
-          />
-        </div>
+      {dimmable.length > 1 && (
+        <Slider
+          value={level}
+          min={1}
+          max={100}
+          onChange={setLevel}
+          onCommit={(next) => {
+            for (const l of dimmable) onChange(l.id, { switch: "on", level: next });
+          }}
+          ariaLabel={`Dimme alle lys i ${name}`}
+          indicatorColor={brightnessFill(level)}
+          className="flex-1 max-w-40 ml-auto"
+        />
       )}
     </div>
   );
@@ -209,18 +89,24 @@ function RoomSection({
   lights: Light[];
   onChange: (id: string, patch: LightPatch) => void;
 }) {
+  const items = groupLights(lights);
+
   return (
     <div>
-      <div className="text-xs text-text-3 uppercase tracking-widest mb-1">
-        {name}
-      </div>
-      {lights.length > 1 && (
-        <RoomSliders name={name} lights={lights} onChange={onChange} />
+      {lights.length > 1 ? (
+        <RoomHeader name={name} lights={lights} onChange={onChange} />
+      ) : (
+        <div className="text-xs text-text-3 uppercase tracking-widest mb-3">{name}</div>
       )}
-      <div className="divide-y divide-border/60">
-        {lights.map((l) => (
-          <LightRow key={l.id} light={l} onChange={onChange} />
-        ))}
+
+      <div className="flex flex-wrap gap-x-4 gap-y-5">
+        {items.map((item) =>
+          item.kind === "single" ? (
+            <LightTile key={item.light.id} light={item.light} onChange={onChange} />
+          ) : (
+            <GroupTile key={item.id} name={item.name} lights={item.lights} onChange={onChange} />
+          ),
+        )}
       </div>
     </div>
   );
@@ -268,20 +154,16 @@ export default function LightsModal({ onClose }: { onClose: () => void }) {
             </div>
           </div>
 
-          <div className="overflow-y-auto flex-1 px-5 py-2">
+          <div className="overflow-y-auto flex-1 px-5 py-4">
             {!data ? (
               !error ? (
-                <div className="space-y-5">
+                <div className="space-y-7">
                   {[0, 1].map((g) => (
                     <div key={g}>
-                      <Skeleton className="h-2.5 w-16 mb-1" />
-                      <div className="divide-y divide-border/60">
-                        {[0, 1].map((i) => (
-                          <div key={i} className="flex items-center gap-3 py-2.5">
-                            <Skeleton className="w-8 h-8 rounded-full shrink-0" />
-                            <Skeleton className="h-3 w-28 shrink-0" />
-                            <Skeleton className="h-12 flex-1 rounded-xl" />
-                          </div>
+                      <Skeleton className="h-2.5 w-16 mb-3" />
+                      <div className="flex gap-4">
+                        {[0, 1, 2].map((i) => (
+                          <Skeleton key={i} className="w-20 h-44 rounded-2xl" />
                         ))}
                       </div>
                     </div>
@@ -299,7 +181,7 @@ export default function LightsModal({ onClose }: { onClose: () => void }) {
             ) : data.length === 0 ? (
               <div className="text-text-4 text-sm font-light py-4">Fant ingen lys</div>
             ) : (
-              <div className="space-y-5">
+              <div className="space-y-7">
                 {data.map((room) => (
                   <RoomSection
                     key={room.id}

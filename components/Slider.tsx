@@ -94,16 +94,19 @@ export default function Slider({
 			onPointerUp={handlePointerUp}
 			onPointerCancel={handlePointerUp}
 			onKeyDown={handleKeyDown}
-			className={`relative h-12 rounded-xl border border-border bg-surface/40 touch-none transition-colors ${
-				disabled ? "opacity-30" : "cursor-pointer hover:bg-surface/70"
+			className={`relative h-10 rounded-full border border-border bg-surface-2/50 touch-none overflow-hidden transition-colors ${
+				disabled ? "opacity-30" : "cursor-pointer hover:bg-surface-2/80"
 			} ${className}`}
 		>
 			<div
-				className="absolute top-1/2 w-4.5 h-9 rounded-full border-6 transition-[background-color,border-color,transform] duration-150 ease-out"
+				className="absolute inset-y-0 left-0 transition-[width] duration-150 ease-out"
+				style={{ width: `${pct}%`, background: indicatorColor }}
+			/>
+			<div
+				className="absolute top-1/2 w-1.5 h-6 rounded-full bg-white/90 shadow-[0_1px_3px_rgba(0,0,0,0.45)] transition-transform duration-150 ease-out"
 				style={{
 					left: `${pct}%`,
-					transform: `translate(-50%, -50%) scale(${dragging ? 1.15 : 1})`,
-					borderColor: indicatorColor,
+					transform: `translate(-50%, -50%) scaleY(${dragging ? 1.2 : 1})`,
 				}}
 			/>
 		</div>
