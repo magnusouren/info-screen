@@ -5,6 +5,7 @@ import {
   XIcon as X,
   GlobeHemisphereWestIcon as GlobeHemisphereWest,
 } from "@phosphor-icons/react";
+import Modal from "./Modal";
 
 const ZONES: { city: string; tz: string }[] = [
   { city: "Los Angeles", tz: "America/Los_Angeles" },
@@ -54,90 +55,78 @@ export default function WorldClockModal({ onClose }: { onClose: () => void }) {
     return () => clearInterval(id);
   }, []);
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
   const oslo = tzDayOfYear("Europe/Oslo", now);
   const sorted = [...ZONES].sort(
     (a, b) => tzOffsetMinutes(a.tz, now) - tzOffsetMinutes(b.tz, now)
   );
 
   return (
-    <div
-      className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-8"
-      onClick={onClose}
-    >
-      <div
-        className="bg-surface border border-border rounded-2xl w-full max-w-xl max-h-[85vh] flex flex-col shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-start justify-between p-5 border-b border-border">
-          <div>
-            <div className="flex items-center gap-1 text-text-3 text-xs font-light">
-              <GlobeHemisphereWest size={11} weight="light" />
-              <span>Verdensklokke</span>
+    <Modal onClose={onClose} panelClassName="max-w-xl max-h-[85vh]">
+      {(close) => (
+        <>
+          <div className="flex items-start justify-between p-5 border-b border-border">
+            <div>
+              <div className="flex items-center gap-1 text-text-3 text-xs font-light">
+                <GlobeHemisphereWest size={11} weight="light" />
+                <span>Verdensklokke</span>
+              </div>
+              <div className="text-text-2 text-sm font-light mt-0.5">
+                Tid rundt om i verden
+              </div>
             </div>
-            <div className="text-text-2 text-sm font-light mt-0.5">
-              Tid rundt om i verden
-            </div>
+            <button
+              onClick={close}
+              className="text-text-3 hover:text-text-2 active:scale-90 transition-[color,transform] -mr-1 -mt-1 p-1"
+              aria-label="Lukk"
+            >
+              <X size={20} weight="light" />
+            </button>
           </div>
-          <button
-            onClick={onClose}
-            className="text-text-3 hover:text-text-2 transition-colors -mr-1 -mt-1 p-1"
-            aria-label="Lukk"
-          >
-            <X size={20} weight="light" />
-          </button>
-        </div>
 
-        <ul className="overflow-y-auto flex-1 divide-y divide-border/60">
-          {sorted.map(({ city, tz }) => {
-            const time = now.toLocaleTimeString("no-NO", {
-              hour: "2-digit",
-              minute: "2-digit",
-              timeZone: tz,
-            });
-            const weekday = now.toLocaleDateString("no-NO", {
-              weekday: "long",
-              timeZone: tz,
-            });
-            const relLabel = relativeDayLabel(tz, oslo, now);
-            const isOslo = tz === "Europe/Oslo";
-            return (
-              <li
-                key={tz}
-                className="flex items-center justify-between px-5 py-3"
-              >
-                <div>
+          <ul className="overflow-y-auto flex-1 divide-y divide-border/60">
+            {sorted.map(({ city, tz }) => {
+              const time = now.toLocaleTimeString("no-NO", {
+                hour: "2-digit",
+                minute: "2-digit",
+                timeZone: tz,
+              });
+              const weekday = now.toLocaleDateString("no-NO", {
+                weekday: "long",
+                timeZone: tz,
+              });
+              const relLabel = relativeDayLabel(tz, oslo, now);
+              const isOslo = tz === "Europe/Oslo";
+              return (
+                <li
+                  key={tz}
+                  className="flex items-center justify-between px-5 py-3"
+                >
+                  <div>
+                    <div
+                      className={`text-sm font-light ${
+                        isOslo ? "text-text" : "text-text-2"
+                      }`}
+                    >
+                      {city}
+                    </div>
+                    <div className="text-text-4 text-xs font-light mt-0.5 capitalize">
+                      {weekday}
+                      {relLabel ? ` · ${relLabel}` : ""}
+                    </div>
+                  </div>
                   <div
-                    className={`text-sm font-light ${
+                    className={`text-2xl font-thin tabular-nums ${
                       isOslo ? "text-text" : "text-text-2"
                     }`}
                   >
-                    {city}
+                    {time}
                   </div>
-                  <div className="text-text-4 text-xs font-light mt-0.5 capitalize">
-                    {weekday}
-                    {relLabel ? ` · ${relLabel}` : ""}
-                  </div>
-                </div>
-                <div
-                  className={`text-2xl font-thin tabular-nums ${
-                    isOslo ? "text-text" : "text-text-2"
-                  }`}
-                >
-                  {time}
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-    </div>
+                </li>
+              );
+            })}
+          </ul>
+        </>
+      )}
+    </Modal>
   );
 }

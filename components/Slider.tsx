@@ -99,10 +99,10 @@ export default function Slider({
 			} ${className}`}
 		>
 			<div
-				className="absolute top-1/2 w-4.5 h-9 rounded-full transition-colors border-6"
+				className="absolute top-1/2 w-4.5 h-9 rounded-full border-6 transition-[background-color,border-color,transform] duration-150 ease-out"
 				style={{
 					left: `${pct}%`,
-					transform: "translate(-50%, -50%)",
+					transform: `translate(-50%, -50%) scale(${dragging ? 1.15 : 1})`,
 					borderColor: indicatorColor,
 				}}
 			/>

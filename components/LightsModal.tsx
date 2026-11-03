@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   XIcon as X,
   LightbulbIcon as Lightbulb,
@@ -10,6 +10,7 @@ import { averageOf, brightnessFill, kelvinFill } from "@/lib/colorUtils";
 import type { Light } from "@/lib/types/lights";
 import { useLights } from "@/lib/useLights";
 import Slider from "./Slider";
+import Modal from "./Modal";
 
 const MIN_KELVIN = 2200;
 const MAX_KELVIN = 6500;
@@ -227,14 +228,6 @@ function RoomSection({
 export default function LightsModal({ onClose }: { onClose: () => void }) {
   const { data, error, connectUrl, setLight } = useLights();
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
   const allOff = () => {
     if (!data) return;
     for (const room of data) {
@@ -245,69 +238,65 @@ export default function LightsModal({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-8"
-      onClick={onClose}
-    >
-      <div
-        className="bg-surface border border-border rounded-2xl w-full max-w-2xl h-[80vh] flex flex-col shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between p-5 border-b border-border shrink-0">
-          <div className="flex items-center gap-2 text-text-3 text-xs uppercase tracking-widest">
-            <Lightbulb size={13} weight="light" />
-            Lys
-          </div>
-          <div className="flex items-center gap-4">
-            {data && data.some((r) => r.lights.some((l) => l.switch === "on")) && (
-              <button
-                type="button"
-                onClick={allOff}
-                className="flex items-center gap-1.5 text-text-3 text-xs font-light hover:text-text-2 transition-colors"
-              >
-                <Power size={13} weight="light" />
-                Slå av alle
-              </button>
-            )}
-            <button
-              onClick={onClose}
-              className="text-text-3 hover:text-text-2 transition-colors p-1"
-              aria-label="Lukk"
-            >
-              <X size={20} weight="light" />
-            </button>
-          </div>
-        </div>
-
-        <div className="overflow-y-auto flex-1 px-5 py-2">
-          {!data ? (
-            <div className="text-text-5 text-sm py-4">
-              {!error ? (
-                <span className="animate-pulse">Laster…</span>
-              ) : connectUrl ? (
-                <a href={connectUrl} className="text-accent underline underline-offset-2">
-                  Koble til SmartThings
-                </a>
-              ) : (
-                "Lys utilgjengelig"
+    <Modal onClose={onClose} panelClassName="max-w-2xl h-[80vh]">
+      {(close) => (
+        <>
+          <div className="flex items-center justify-between p-5 border-b border-border shrink-0">
+            <div className="flex items-center gap-2 text-text-3 text-xs uppercase tracking-widest">
+              <Lightbulb size={13} weight="light" />
+              Lys
+            </div>
+            <div className="flex items-center gap-4">
+              {data && data.some((r) => r.lights.some((l) => l.switch === "on")) && (
+                <button
+                  type="button"
+                  onClick={allOff}
+                  className="flex items-center gap-1.5 text-text-3 text-xs font-light hover:text-text-2 transition-colors"
+                >
+                  <Power size={13} weight="light" />
+                  Slå av alle
+                </button>
               )}
+              <button
+                onClick={close}
+                className="text-text-3 hover:text-text-2 active:scale-90 transition-[color,transform] p-1"
+                aria-label="Lukk"
+              >
+                <X size={20} weight="light" />
+              </button>
             </div>
-          ) : data.length === 0 ? (
-            <div className="text-text-4 text-sm font-light py-4">Fant ingen lys</div>
-          ) : (
-            <div className="space-y-5">
-              {data.map((room) => (
-                <RoomSection
-                  key={room.id}
-                  name={room.name}
-                  lights={room.lights}
-                  onChange={setLight}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+          </div>
+
+          <div className="overflow-y-auto flex-1 px-5 py-2">
+            {!data ? (
+              <div className="text-text-5 text-sm py-4">
+                {!error ? (
+                  <span className="animate-pulse">Laster…</span>
+                ) : connectUrl ? (
+                  <a href={connectUrl} className="text-accent underline underline-offset-2">
+                    Koble til SmartThings
+                  </a>
+                ) : (
+                  "Lys utilgjengelig"
+                )}
+              </div>
+            ) : data.length === 0 ? (
+              <div className="text-text-4 text-sm font-light py-4">Fant ingen lys</div>
+            ) : (
+              <div className="space-y-5">
+                {data.map((room) => (
+                  <RoomSection
+                    key={room.id}
+                    name={room.name}
+                    lights={room.lights}
+                    onChange={setLight}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </>
+      )}
+    </Modal>
   );
 }

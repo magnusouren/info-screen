@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { XIcon as X, LightningIcon as Lightning } from "@phosphor-icons/react";
 import type { PricesData, HourlyPrice } from "@/lib/types/prices";
+import Modal from "./Modal";
 
 const W = 400;
 const H = 200;
@@ -211,62 +212,50 @@ export default function PriceChartModal({
   priceArea: string;
   onClose: () => void;
 }) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
   const currentHour = new Date().getHours();
 
   return (
-    <div
-      className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-8"
-      onClick={onClose}
-    >
-      <div
-        className="bg-surface border border-border rounded-2xl w-full max-w-3xl max-h-[85vh] flex flex-col shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-start justify-between p-5 border-b border-border">
-          <div>
-            <div className="flex items-center gap-1 text-text-3 text-xs font-light">
-              <Lightning size={11} weight="light" />
-              <span>Strømpris · {priceArea}</span>
+    <Modal onClose={onClose} panelClassName="max-w-3xl max-h-[85vh]">
+      {(close) => (
+        <>
+          <div className="flex items-start justify-between p-5 border-b border-border">
+            <div>
+              <div className="flex items-center gap-1 text-text-3 text-xs font-light">
+                <Lightning size={11} weight="light" />
+                <span>Strømpris · {priceArea}</span>
+              </div>
+              <div className="text-text-2 text-sm font-light mt-0.5">
+                Timespriser
+              </div>
             </div>
-            <div className="text-text-2 text-sm font-light mt-0.5">
-              Timespriser
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-text-3 hover:text-text-2 transition-colors -mr-1 -mt-1 p-1"
-            aria-label="Lukk"
-          >
-            <X size={20} weight="light" />
-          </button>
-        </div>
-
-        <div className="overflow-y-auto flex-1 p-5 space-y-6">
-          <div>
-            <div className="text-text-3 text-xs uppercase tracking-widest mb-2">
-              I dag
-            </div>
-            <PriceChart prices={data.today} currentHour={currentHour} />
+            <button
+              onClick={close}
+              className="text-text-3 hover:text-text-2 active:scale-90 transition-[color,transform] -mr-1 -mt-1 p-1"
+              aria-label="Lukk"
+            >
+              <X size={20} weight="light" />
+            </button>
           </div>
 
-          {data.tomorrow && (
+          <div className="overflow-y-auto flex-1 p-5 space-y-6">
             <div>
               <div className="text-text-3 text-xs uppercase tracking-widest mb-2">
-                I morgen
+                I dag
               </div>
-              <PriceChart prices={data.tomorrow} currentHour={null} />
+              <PriceChart prices={data.today} currentHour={currentHour} />
             </div>
-          )}
-        </div>
-      </div>
-    </div>
+
+            {data.tomorrow && (
+              <div>
+                <div className="text-text-3 text-xs uppercase tracking-widest mb-2">
+                  I morgen
+                </div>
+                <PriceChart prices={data.tomorrow} currentHour={null} />
+              </div>
+            )}
+          </div>
+        </>
+      )}
+    </Modal>
   );
 }
