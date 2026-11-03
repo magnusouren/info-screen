@@ -11,6 +11,7 @@ import type { Light } from "@/lib/types/lights";
 import { useLights } from "@/lib/useLights";
 import Slider from "./Slider";
 import Modal from "./Modal";
+import Skeleton from "./Skeleton";
 
 const MIN_KELVIN = 2200;
 const MAX_KELVIN = 6500;
@@ -269,17 +270,32 @@ export default function LightsModal({ onClose }: { onClose: () => void }) {
 
           <div className="overflow-y-auto flex-1 px-5 py-2">
             {!data ? (
-              <div className="text-text-5 text-sm py-4">
-                {!error ? (
-                  <span className="animate-pulse">Laster…</span>
-                ) : connectUrl ? (
+              !error ? (
+                <div className="space-y-5">
+                  {[0, 1].map((g) => (
+                    <div key={g}>
+                      <Skeleton className="h-2.5 w-16 mb-1" />
+                      <div className="divide-y divide-border/60">
+                        {[0, 1].map((i) => (
+                          <div key={i} className="flex items-center gap-3 py-2.5">
+                            <Skeleton className="w-8 h-8 rounded-full shrink-0" />
+                            <Skeleton className="h-3 w-28 shrink-0" />
+                            <Skeleton className="h-12 flex-1 rounded-xl" />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : connectUrl ? (
+                <div className="text-text-5 text-sm py-4">
                   <a href={connectUrl} className="text-accent underline underline-offset-2">
                     Koble til SmartThings
                   </a>
-                ) : (
-                  "Lys utilgjengelig"
-                )}
-              </div>
+                </div>
+              ) : (
+                <div className="text-text-5 text-sm py-4">Lys utilgjengelig</div>
+              )
             ) : data.length === 0 ? (
               <div className="text-text-4 text-sm font-light py-4">Fant ingen lys</div>
             ) : (

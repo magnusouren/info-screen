@@ -7,6 +7,7 @@ import {
 import { useEffect, useState } from "react";
 import { getCoords } from "@/lib/geolocation";
 import type { CityBikeStation } from "@/lib/types/citybike";
+import Skeleton from "./Skeleton";
 
 function iconsForType(id: string) {
 	return id === "ebike" ? [Lightning, Bicycle] : [Bicycle];
@@ -49,9 +50,18 @@ export default function CityBike() {
 					<Bicycle size={13} weight="light" />
 					Bysykkel
 				</div>
-				<div className="text-text-5 text-sm animate-pulse">
-					{error ? "Bysykkeldata utilgjengelig" : "Laster…"}
-				</div>
+				{error ? (
+					<div className="text-text-5 text-sm">Bysykkeldata utilgjengelig</div>
+				) : (
+					<div className="flex items-center gap-4">
+						{[0, 1].map((i) => (
+							<div key={i} className="flex items-center gap-1.5">
+								<Skeleton className="w-3.5 h-3.5 rounded-full" />
+								<Skeleton className="h-3 w-5" />
+							</div>
+						))}
+					</div>
+				)}
 			</div>
 		);
 	}

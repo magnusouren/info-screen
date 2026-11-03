@@ -12,6 +12,7 @@ import { hexToRgba } from "@/lib/colorUtils";
 import type { BusData } from "@/lib/types/bus";
 import BusSettingsModal from "./BusSettingsModal";
 import BusStopModal from "./BusStopModal";
+import Skeleton from "./Skeleton";
 
 const LONG_PRESS_MS = 500;
 const LONG_PRESS_MOVE_THRESHOLD = 10;
@@ -182,9 +183,26 @@ export default function BusDepartures() {
 					<Bus size={13} weight="light" />
 					Buss
 				</div>
-				<div className="text-text-5 text-sm animate-pulse">
-					{error ? "Avganger utilgjengelig" : "Laster avganger…"}
-				</div>
+				{error ? (
+					<div className="text-text-5 text-sm">Avganger utilgjengelig</div>
+				) : (
+					<div className="space-y-4">
+						{[0, 1].map((g) => (
+							<div key={g}>
+								<Skeleton className="h-2.5 w-24 mb-2" />
+								<div className="space-y-2">
+									{[0, 1, 2].map((r) => (
+										<div key={r} className="flex items-center gap-3">
+											<Skeleton className="w-8 h-5 rounded shrink-0" />
+											<Skeleton className="h-3.5 flex-1" />
+											<Skeleton className="w-10 h-3.5 shrink-0" />
+										</div>
+									))}
+								</div>
+							</div>
+						))}
+					</div>
+				)}
 			</div>
 		);
 	}

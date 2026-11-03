@@ -10,6 +10,7 @@ import {
   ForkKnifeIcon as ForkKnife,
 } from "@phosphor-icons/react";
 import type { Scene, ScenesData, SceneIcon } from "@/lib/types/scenes";
+import Skeleton from "./Skeleton";
 
 const ICONS: Record<
   SceneIcon,
@@ -96,20 +97,30 @@ export default function Scenes() {
       </div>
 
       {!data ? (
-        <div className="text-text-5 text-sm">
-          {!error ? (
-            <span className="animate-pulse">Laster…</span>
-          ) : connectUrl ? (
+        !error ? (
+          <div className="grid grid-cols-3 gap-2">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div
+                key={i}
+                className="flex flex-col items-center gap-1 rounded-xl px-2 sm:px-4 lg:px-6 py-2 border border-border bg-surface/40"
+              >
+                <Skeleton className="w-[26px] h-[26px] rounded-full" />
+                <Skeleton className="h-3 w-12" />
+              </div>
+            ))}
+          </div>
+        ) : connectUrl ? (
+          <div className="text-text-5 text-sm">
             <a
               href={connectUrl}
               className="text-accent underline underline-offset-2"
             >
               Koble til SmartThings
             </a>
-          ) : (
-            "Scener utilgjengelig"
-          )}
-        </div>
+          </div>
+        ) : (
+          <div className="text-text-5 text-sm">Scener utilgjengelig</div>
+        )
       ) : (
         <div className="grid grid-cols-3 gap-2">
           {data.scenes.map((s) => {

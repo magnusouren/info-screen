@@ -6,6 +6,7 @@ import { averageOf, brightnessFill, kelvinFill, kelvinGradient } from "@/lib/col
 import { useLights } from "@/lib/useLights";
 import LightPad from "./LightPad";
 import LightsModal from "./LightsModal";
+import Skeleton from "./Skeleton";
 import Slider from "./Slider";
 
 const MIN_KELVIN = 2200;
@@ -60,7 +61,17 @@ export default function LightsQuickControl() {
 		}
 	};
 
-	if (!data && !error) return null;
+	if (!data && !error) {
+		return (
+			<div className="flex-1 min-h-0 flex flex-col">
+				<div className="flex items-center gap-2 text-xs text-text-3 uppercase tracking-widest mb-2">
+					<Lightbulb size={13} weight="light" />
+					Lys
+				</div>
+				<Skeleton className="w-full flex-1 min-h-0 max-sm:aspect-square max-sm:flex-none mt-4" />
+			</div>
+		);
+	}
 
 	return (
 		<>

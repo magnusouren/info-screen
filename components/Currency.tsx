@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { MoneyIcon as Money } from "@phosphor-icons/react";
 import type { CurrencyData } from "@/lib/types/currency";
+import Skeleton from "./Skeleton";
 
 function format(n: number): string {
   return n.toLocaleString("no-NO", {
@@ -45,9 +46,18 @@ export default function Currency() {
         Valuta
       </div>
       {!data ? (
-        <div className="text-text-5 text-sm animate-pulse">
-          {error ? "Valuta utilgjengelig" : "Laster valuta…"}
-        </div>
+        error ? (
+          <div className="text-text-5 text-sm">Valuta utilgjengelig</div>
+        ) : (
+          <ul className="space-y-1.5">
+            {[0, 1, 2].map((i) => (
+              <li key={i} className="flex items-center gap-2">
+                <Skeleton className="h-3 w-8" />
+                <Skeleton className="h-3 w-14 ml-auto" />
+              </li>
+            ))}
+          </ul>
+        )
       ) : (
         <ul className="space-y-1">
           {data.rates.map((r) => (

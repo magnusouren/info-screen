@@ -8,6 +8,7 @@ import {
 import type { PricesData, HourlyPrice } from "@/lib/types/prices";
 import { config } from "@/lib/config";
 import PriceChartModal from "./PriceChartModal";
+import Skeleton from "./Skeleton";
 
 const oslo = (iso: string) =>
   new Date(iso).toLocaleTimeString("no-NO", {
@@ -66,6 +67,19 @@ function buildTip(
   return { text: `Billigst ${dayHint}kl. ${hour}`, ore };
 }
 
+function PriceRowsSkeleton() {
+  return (
+    <ul className="space-y-1.5">
+      {[0, 1, 2, 3].map((i) => (
+        <li key={i} className="flex items-center gap-2">
+          <Skeleton className="h-3 w-12" />
+          <Skeleton className="h-3 w-8 ml-auto" />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function Row({ label, value }: { label: string; value: number }) {
   return (
     <li className="flex items-baseline gap-2 text-sm font-light">
@@ -121,9 +135,11 @@ export default function ElectricityPrice() {
         </div>
 
         {!data ? (
-          <div className="text-text-5 text-sm animate-pulse">
-            {error ? "Strømpris utilgjengelig" : "Laster priser…"}
-          </div>
+          error ? (
+            <div className="text-text-5 text-sm">Strømpris utilgjengelig</div>
+          ) : (
+            <PriceRowsSkeleton />
+          )
         ) : (
           <>
             {today && (

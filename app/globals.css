@@ -83,6 +83,37 @@
   display: none;
 }
 
+/* Skeleton loading placeholders — a soft sweep rather than a flat pulse,
+   so idle widgets still read as "working" without being distracting on an
+   always-on display. */
+.skeleton {
+  background-image: linear-gradient(
+    100deg,
+    var(--surface-2) 35%,
+    var(--border-strong) 50%,
+    var(--surface-2) 65%
+  );
+  background-size: 250% 100%;
+  animation: skeleton-shimmer 1.6s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+    background-image: none;
+    background-color: var(--surface-2);
+  }
+}
+
 html, body {
   min-height: 100%;
   background: var(--bg);

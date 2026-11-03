@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { CalendarBlankIcon as CalendarBlank } from "@phosphor-icons/react";
 import type { CalendarData, CalendarEvent } from "@/lib/types/calendar";
+import Skeleton from "./Skeleton";
 
 const TZ = "Europe/Oslo";
 
@@ -93,9 +94,25 @@ export default function Calendar() {
         Kalender
       </div>
       {!data ? (
-        <div className="text-text-5 text-sm animate-pulse">
-          {error ? "Kalender utilgjengelig" : "Laster kalender…"}
-        </div>
+        error ? (
+          <div className="text-text-5 text-sm">Kalender utilgjengelig</div>
+        ) : (
+          <div className="flex gap-4">
+            {[0, 1].map((g) => (
+              <div key={g} className="min-w-[120px] flex-1 space-y-2.5">
+                <Skeleton className="h-2.5 w-16" />
+                <div className="space-y-1.5">
+                  <Skeleton className="h-2.5 w-14" />
+                  <Skeleton className="h-3.5 w-24" />
+                </div>
+                <div className="space-y-1.5">
+                  <Skeleton className="h-2.5 w-20" />
+                  <Skeleton className="h-3.5 w-28" />
+                </div>
+              </div>
+            ))}
+          </div>
+        )
       ) : data.events.length === 0 ? (
         <div className="text-text-4 text-sm font-light">Ingen hendelser</div>
       ) : (

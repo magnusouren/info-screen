@@ -5,6 +5,7 @@ import { XIcon as X, BusIcon as Bus } from "@phosphor-icons/react";
 import type { StopDepartures } from "@/lib/types/bus";
 import { hexToRgba } from "@/lib/colorUtils";
 import Modal from "./Modal";
+import Skeleton from "./Skeleton";
 
 export default function BusStopModal({
   stopId,
@@ -65,9 +66,25 @@ export default function BusStopModal({
 
           <div className="overflow-y-auto flex-1">
             {!data ? (
-              <div className="text-text-5 text-sm animate-pulse p-5">
-                {error ? "Avganger utilgjengelig" : "Laster avganger…"}
-              </div>
+              error ? (
+                <div className="text-text-5 text-sm p-5">
+                  Avganger utilgjengelig
+                </div>
+              ) : (
+                <ul className="divide-y divide-border/60">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <li
+                      key={i}
+                      className="flex items-center gap-3 px-5 py-3"
+                    >
+                      <Skeleton className="w-10 h-6 rounded shrink-0" />
+                      <Skeleton className="h-4 flex-1" />
+                      <Skeleton className="h-3 w-10 shrink-0" />
+                      <Skeleton className="h-3 w-12 shrink-0" />
+                    </li>
+                  ))}
+                </ul>
+              )
             ) : data.departures.length === 0 ? (
               <div className="text-text-4 text-sm p-5">Ingen avganger</div>
             ) : (

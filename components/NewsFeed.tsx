@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { NewspaperIcon as Newspaper } from "@phosphor-icons/react";
 import type { NewsData } from "@/lib/types/news";
+import Skeleton from "./Skeleton";
 
 export default function NewsFeed({
   category,
@@ -46,9 +47,18 @@ export default function NewsFeed({
         {title}
       </div>
       {!data ? (
-        <div className="text-text-5 text-sm animate-pulse">
-          {error ? "Nyheter utilgjengelig" : "Laster nyheter…"}
-        </div>
+        error ? (
+          <div className="text-text-5 text-sm">Nyheter utilgjengelig</div>
+        ) : (
+          <ul className="divide-y divide-border/60">
+            {[0, 1, 2, 3].map((i) => (
+              <li key={i} className="px-2 py-2 -mx-2 space-y-1.5">
+                <Skeleton className="h-3.5 w-full" />
+                <Skeleton className="h-3.5 w-2/3" />
+              </li>
+            ))}
+          </ul>
+        )
       ) : (
         <ul className="divide-y divide-border/60 overflow-x-hidden sm:overflow-y-auto sm:flex-1 sm:min-h-0 pr-1">
           {data.items.map((item, i) => (
