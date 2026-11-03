@@ -29,9 +29,9 @@ export default function Page() {
 					</ErrorBoundary>
 				</div>
 
-				<div className="border-t border-border sm:border-t-0 sm:bg-border" />
+				<div className="hidden sm:block sm:bg-border" />
 
-				<div className="min-w-0">
+				<div className="hidden sm:block min-w-0">
 					<ErrorBoundary label="Kalender">
 						<Calendar />
 					</ErrorBoundary>
@@ -59,8 +59,8 @@ export default function Page() {
 					<ErrorBoundary label="Scener">
 						<Scenes />
 					</ErrorBoundary>
-					<div className="border-t border-border" />
-					<div className="sm:flex-1 sm:min-h-0">
+					<div className="hidden sm:block border-t border-border" />
+					<div className="hidden sm:block sm:flex-1 sm:min-h-0">
 						<ErrorBoundary label="Nyheter">
 							<News />
 						</ErrorBoundary>
