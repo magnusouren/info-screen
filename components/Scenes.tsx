@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import {
   PowerIcon as Power,
   LightbulbIcon as Lightbulb,
@@ -9,10 +8,11 @@ import {
   BroomIcon as Broom,
   ForkKnifeIcon as ForkKnife,
 } from "@phosphor-icons/react";
-import type { Scene, ScenesData, SceneIcon } from "@/lib/types/scenes";
+import type { SceneIcon } from "@/lib/types/scenes";
 import Skeleton from "./Skeleton";
+import { useScenes } from "./useScenes";
 
-const ICONS: Record<
+export const SCENE_ICONS: Record<
   SceneIcon,
   React.ComponentType<{ size?: number; weight?: "light" | "thin" | "fill" }>
 > = {
@@ -24,70 +24,9 @@ const ICONS: Record<
   forkknife: ForkKnife,
 };
 
-const FAILED_FLASH_MS = 2000;
-
 export default function Scenes() {
-  const [data, setData] = useState<ScenesData | null>(null);
-  const [error, setError] = useState(false);
-  const [connectUrl, setConnectUrl] = useState<string | null>(null);
-  const [firingIds, setFiringIds] = useState<Set<string>>(new Set());
-  const [failedId, setFailedId] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    const load = async () => {
-      try {
-        const res = await fetch("/api/scenes");
-        if (!res.ok) {
-          const json = (await res.json().catch(() => null)) as {
-            connectUrl?: string;
-          } | null;
-          if (!cancelled) setConnectUrl(json?.connectUrl ?? null);
-          throw new Error();
-        }
-        const json = (await res.json()) as ScenesData;
-        if (!cancelled) {
-          setData(json);
-          setError(false);
-          setConnectUrl(null);
-        }
-      } catch {
-        if (!cancelled) setError(true);
-      }
-    };
-    load();
-    const id = setInterval(load, 60 * 1000);
-    return () => {
-      cancelled = true;
-      clearInterval(id);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!failedId) return;
-    const id = setTimeout(() => setFailedId(null), FAILED_FLASH_MS);
-    return () => clearTimeout(id);
-  }, [failedId]);
-
-  const trigger = async (scene: Scene) => {
-    setFiringIds((prev) => new Set(prev).add(scene.id));
-    try {
-      const res = await fetch("/api/scenes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: scene.id }),
-      });
-      if (!res.ok) throw new Error();
-    } catch {
-      setFailedId(scene.id);
-    } finally {
-      setFiringIds((prev) => {
-        const next = new Set(prev);
-        next.delete(scene.id);
-        return next;
-      });
-    }
-  };
+  const { data, error, connectUrl, firingIds, failedId, trigger } =
+    useScenes();
 
   return (
     <div>
@@ -124,7 +63,7 @@ export default function Scenes() {
       ) : (
         <div className="grid grid-cols-3 gap-2">
           {data.scenes.map((s) => {
-            const Icon = ICONS[s.icon];
+            const Icon = SCENE_ICONS[s.icon];
             const firing = firingIds.has(s.id);
             const failed = failedId === s.id;
             return (

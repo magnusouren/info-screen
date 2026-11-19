@@ -79,6 +79,19 @@ export const config = {
             Trippel: ['Trippel Topp', 'Trippel Midt', 'Trippel Nede 1'],
             'Tak Kjøkken': ['Tak Kjøkken 1', 'Tak Kjøkken 2', 'Tak Kjøkken 3'],
         } as Record<string, string[]>,
+
+        // "Smarte" scene-forslag som vises øverst på mobil. Første regel som
+        // matcher nåværende ukedag og klokkeslett vinner, og de første (maks to)
+        // scenene i lista som faktisk finnes i SmartThings vises.
+        // Ukedager: 1 = mandag … 7 = søndag. Tidsvinduer kan gå over midnatt
+        // (f.eks. 22:00–02:00); `to` er eksklusiv.
+        suggestions: [
+            { days: [1, 2, 3, 4, 5], from: '05:30', to: '09:00', scenes: ['God morgen', 'Borte'] },
+            { days: [6, 7], from: '07:00', to: '11:00', scenes: ['God morgen', 'Rolig belysning'] },
+            { days: [1, 2, 3, 4, 5], from: '15:30', to: '18:00', scenes: ['Hjemme', 'Alt på'] },
+            { days: [1, 2, 3, 4, 5, 6, 7], from: '18:00', to: '22:00', scenes: ['Se på TV', 'Rolig belysning'] },
+            { days: [1, 2, 3, 4, 5, 6, 7], from: '22:00', to: '02:00', scenes: ['God natt', 'Legge seg'] },
+        ] as { days: number[]; from: string; to: string; scenes: string[] }[],
     },
 } as const;
 

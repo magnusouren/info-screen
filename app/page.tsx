@@ -8,6 +8,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import LightsQuickControl from "@/components/LightsQuickControl";
 import News from "@/components/News";
 import Scenes from "@/components/Scenes";
+import SmartScenes from "@/components/SmartScenes";
 import Weather from "@/components/Weather";
 
 export default function Page() {
@@ -44,6 +45,9 @@ export default function Page() {
 			{/* Bottom row: Bus + Home control + News/Prices */}
 			<div className="flex flex-col sm:grid sm:grid-cols-[minmax(140px,0.9fr)_1px_minmax(160px,1fr)_1px_minmax(160px,1fr)] gap-4 md:gap-6 sm:flex-1 sm:min-h-0">
 				<div className="min-w-0 overflow-hidden flex flex-col gap-4 lg:gap-6">
+					<ErrorBoundary label="Forslag">
+						<SmartScenes />
+					</ErrorBoundary>
 					<ErrorBoundary label="Buss">
 						<BusDepartures />
 					</ErrorBoundary>
