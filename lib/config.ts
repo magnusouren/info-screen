@@ -87,10 +87,10 @@ export const config = {
         // (f.eks. 22:00–02:00); `to` er eksklusiv.
         suggestions: [
             { days: [1, 2, 3, 4, 5], from: '05:30', to: '09:00', scenes: ['God morgen', 'Borte'] },
-            { days: [6, 7], from: '07:00', to: '11:00', scenes: ['God morgen', 'Rolig belysning'] },
-            { days: [1, 2, 3, 4, 5], from: '15:30', to: '18:00', scenes: ['Hjemme', 'Alt på'] },
-            { days: [1, 2, 3, 4, 5, 6, 7], from: '18:00', to: '22:00', scenes: ['Se på TV', 'Rolig belysning'] },
-            { days: [1, 2, 3, 4, 5, 6, 7], from: '22:00', to: '02:00', scenes: ['God natt', 'Legge seg'] },
+            { days: [6, 7], from: '07:00', to: '11:00', scenes: ['God morgen', 'Hjemme'] },
+            { days: [1, 2, 3, 4, 5], from: '15:00', to: '18:00', scenes: ['Hjemme', 'Rolig belysning'] },
+            { days: [1, 2, 3, 4, 5], from: '18:00', to: '21:00', scenes: ['Rolig belysning', 'Se på TV'] },
+            { days: [1, 2, 3, 4, 5, 6, 7], from: '21:00', to: '02:00', scenes: ['God natt', 'Legge seg'] },
         ] as { days: number[]; from: string; to: string; scenes: string[] }[],
     },
 } as const;
