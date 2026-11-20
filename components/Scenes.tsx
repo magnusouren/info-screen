@@ -7,10 +7,13 @@ import {
   FilmReelIcon as FilmReel,
   BroomIcon as Broom,
   ForkKnifeIcon as ForkKnife,
+  CircleNotchIcon as CircleNotch,
+  CheckIcon as Check,
+  XIcon as X,
 } from "@phosphor-icons/react";
 import type { SceneIcon } from "@/lib/types/scenes";
 import Skeleton from "./Skeleton";
-import { useScenes } from "./useScenes";
+import { useScenes, type SceneStatus } from "./useScenes";
 
 export const SCENE_ICONS: Record<
   SceneIcon,
@@ -24,9 +27,38 @@ export const SCENE_ICONS: Record<
   forkknife: ForkKnife,
 };
 
+/** Sceneikonet, byttet ut med spinner / hake / kryss etter status. */
+export function SceneStatusIcon({
+  icon,
+  status,
+  size,
+}: {
+  icon: SceneIcon;
+  status: SceneStatus;
+  size: number;
+}) {
+  if (status === "firing")
+    return <CircleNotch size={size} weight="light" className="animate-spin" />;
+  if (status === "success") return <Check size={size} weight="light" />;
+  if (status === "failed") return <X size={size} weight="light" />;
+  const Icon = SCENE_ICONS[icon];
+  return <Icon size={size} weight="light" />;
+}
+
+/** Felles statusfarger for scene-knapper. `idle` er klassene for normaltilstand. */
+export function sceneStatusClass(status: SceneStatus, idle: string): string {
+  switch (status) {
+    case "success":
+      return "border-accent text-accent";
+    case "failed":
+      return "border-live text-live";
+    default:
+      return `border-border ${idle}`;
+  }
+}
+
 export default function Scenes() {
-  const { data, error, connectUrl, firingIds, failedId, trigger } =
-    useScenes();
+  const { data, error, connectUrl, statusOf, trigger } = useScenes();
 
   return (
     <div>
@@ -63,21 +95,17 @@ export default function Scenes() {
       ) : (
         <div className="grid grid-cols-3 gap-2">
           {data.scenes.map((s) => {
-            const Icon = SCENE_ICONS[s.icon];
-            const firing = firingIds.has(s.id);
-            const failed = failedId === s.id;
+            const status = statusOf(s.id);
             return (
               <button
                 key={s.id}
                 type="button"
                 onClick={() => trigger(s)}
-                disabled={firing}
-                aria-busy={firing}
-                className={`flex flex-col items-center gap-1 rounded-xl px-2 sm:px-4 lg:px-6 py-2 border transition-colors bg-surface/40 text-text-3 hover:text-text-2 hover:bg-surface/70 ${
-                  failed ? "border-live text-live" : "border-border"
-                } ${firing ? "opacity-60" : ""}`}
+                disabled={status === "firing"}
+                aria-busy={status === "firing"}
+                className={`flex flex-col items-center gap-1 rounded-xl px-2 sm:px-4 lg:px-6 py-2 border transition-colors bg-surface/40 hover:bg-surface/70 disabled:cursor-wait ${sceneStatusClass(status, "text-text-3 hover:text-text-2")}`}
               >
-                <Icon size={26} weight="light" />
+                <SceneStatusIcon icon={s.icon} status={status} size={26} />
                 <span className="text-sm font-light tracking-wide">
                   {s.name}
                 </span>

@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from "react";
 import { SparkleIcon as Sparkle } from "@phosphor-icons/react";
 import { suggestScenes } from "@/lib/sceneSuggestions";
-import { SCENE_ICONS } from "./Scenes";
+import { SceneStatusIcon, sceneStatusClass } from "./Scenes";
 import { useScenes } from "./useScenes";
 
 // Tikker én gang i minuttet slik at forslagene følger klokka.
@@ -21,7 +21,7 @@ export default function SmartScenes() {
     getMinute,
     getServerMinute,
   );
-  const { data, firingIds, failedId, trigger } = useScenes();
+  const { data, statusOf, trigger } = useScenes();
 
   if (minute === null || !data) return null;
   const suggestions = suggestScenes(data.scenes, new Date(minute * 60_000));
@@ -38,21 +38,17 @@ export default function SmartScenes() {
         </div>
         <div className="grid grid-cols-2 gap-2">
           {suggestions.map((s) => {
-            const Icon = SCENE_ICONS[s.icon];
-            const firing = firingIds.has(s.id);
-            const failed = failedId === s.id;
+            const status = statusOf(s.id);
             return (
               <button
                 key={s.id}
                 type="button"
                 onClick={() => trigger(s)}
-                disabled={firing}
-                aria-busy={firing}
-                className={`flex items-center gap-3 rounded-xl px-4 py-3 border transition-colors bg-surface/40 text-text-2 hover:bg-surface/70 ${
-                  failed ? "border-live text-live" : "border-border"
-                } ${firing ? "opacity-60" : ""}`}
+                disabled={status === "firing"}
+                aria-busy={status === "firing"}
+                className={`flex items-center gap-3 rounded-xl px-4 py-3 border transition-colors bg-surface/40 hover:bg-surface/70 disabled:cursor-wait ${sceneStatusClass(status, "text-text-2")}`}
               >
-                <Icon size={24} weight="light" />
+                <SceneStatusIcon icon={s.icon} status={status} size={24} />
                 <span className="text-base font-light tracking-wide text-left leading-tight">
                   {s.name}
                 </span>
