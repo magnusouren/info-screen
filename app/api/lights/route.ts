@@ -1,43 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { config } from "@/lib/config";
 import { getAccessToken } from "@/lib/smartthingsAuth";
+import { fetchLightDevices } from "@/lib/smartthingsLights";
 import type { Light, LightRoom, LightsData } from "@/lib/types/lights";
 
 const API_BASE = "https://api.smartthings.com/v1";
 const CONNECT_URL = "/api/smartthings/authorize";
 const MIN_KELVIN = 2200;
 const MAX_KELVIN = 6500;
-
-// Capabilities that rule a device out even though it has `switch` —
-// TVs, media players, sensors and buttons all expose `switch` on SmartThings
-// but aren't lights we want on the lights page.
-const NON_LIGHT_CAPS = new Set([
-  "tvChannel",
-  "mediaPlayback",
-  "mediaTrackControl",
-  "mediaInputSource",
-  "mediaGroup",
-  "mediaPresets",
-  "audioVolume",
-  "audioMute",
-  "audioNotification",
-  "audioTrackData",
-  "contactSensor",
-  "button",
-  "presenceSensor",
-  "bridge",
-  "illuminanceMeasurement",
-  "relativeBrightness",
-  "knob",
-]);
-
-interface SmartThingsDevice {
-  deviceId: string;
-  label?: string;
-  name?: string;
-  roomId?: string;
-  components?: { capabilities?: { id: string }[] }[];
-}
 
 interface DeviceStatus {
   components?: {
@@ -49,31 +19,10 @@ interface DeviceStatus {
   };
 }
 
-function deviceCapabilities(device: SmartThingsDevice): Set<string> {
-  const caps = new Set<string>();
-  for (const component of device.components ?? []) {
-    for (const cap of component.capabilities ?? []) caps.add(cap.id);
-  }
-  return caps;
-}
-
-function isLight(device: SmartThingsDevice): boolean {
-  const caps = deviceCapabilities(device);
-  if (!caps.has("switch")) return false;
-  for (const bad of NON_LIGHT_CAPS) if (caps.has(bad)) return false;
-  return true;
-}
-
 async function fetchLights(token: string): Promise<LightsData> {
   const headers = { Authorization: `Bearer ${token}` };
 
-  const devicesRes = await fetch(`${API_BASE}/devices`, {
-    headers,
-    cache: "no-store",
-  });
-  if (!devicesRes.ok) throw new Error(`SmartThings svarte ${devicesRes.status}`);
-  const devicesJson = (await devicesRes.json()) as { items?: SmartThingsDevice[] };
-  const lightDevices = (devicesJson.items ?? []).filter(isLight);
+  const lightDevices = await fetchLightDevices(token);
 
   const lights: (Light & { roomId: string | null })[] = await Promise.all(
     lightDevices.map(async (device) => {

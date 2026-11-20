@@ -92,6 +92,23 @@ export const config = {
             { days: [1, 2, 3, 4, 5], from: '18:00', to: '21:00', scenes: ['Rolig belysning', 'Se på TV'] },
             { days: [1, 2, 3, 4, 5, 6, 7], from: '21:00', to: '02:00', scenes: ['God natt', 'Legge seg'] },
         ] as { days: number[]; from: string; to: string; scenes: string[] }[],
+
+        // Adaptive scener: når scenen aktiveres, kjøres den som vanlig i
+        // SmartThings, og deretter justeres styrke og fargetemperatur på alle
+        // lys som er på etter klokkeslettet. Verdiene interpoleres lineært
+        // mellom punktene, og kurven går rundt midnatt (siste punkt → første).
+        // Lys uten fargetemperatur får bare styrken justert.
+        adaptiveScenes: {
+            Hjemme: [
+                { time: '06:00', level: 40, kelvin: 2700 },
+                { time: '08:00', level: 80, kelvin: 3500 },
+                { time: '12:00', level: 100, kelvin: 4000 },
+                { time: '17:00', level: 90, kelvin: 3300 },
+                { time: '20:00', level: 60, kelvin: 2700 },
+                { time: '22:30', level: 30, kelvin: 2200 },
+                { time: '02:00', level: 15, kelvin: 2200 },
+            ],
+        } as Record<string, { time: string; level: number; kelvin: number }[]>,
     },
 } as const;
 
