@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+import { startsInSystemGestureZone } from "@/lib/pointerGuard";
 
 function clamp(v: number, min: number, max: number): number {
 	return Math.min(max, Math.max(min, v));
@@ -43,6 +44,8 @@ export default function LightPad({
 }: LightPadProps) {
 	const trackRef = useRef<HTMLDivElement>(null);
 	const [dragging, setDragging] = useState(false);
+	// Verdien da dra-bevegelsen startet, så vi kan rulle tilbake ved avbrudd.
+	const startRef = useRef({ brightness, colorTemp });
 
 	const xPct = ((colorTemp - minTemp) / (maxTemp - minTemp)) * 100;
 	const yPct = 100 - ((brightness - 1) / 99) * 100;
@@ -67,7 +70,10 @@ export default function LightPad({
 
 	const handlePointerDown = (e: React.PointerEvent) => {
 		if (disabled) return;
+		// Sveip opp fra bunnkanten (gå ut av appen) skal ikke endre lyset.
+		if (startsInSystemGestureZone(e)) return;
 		(e.target as HTMLElement).setPointerCapture(e.pointerId);
+		startRef.current = { brightness, colorTemp };
 		setDragging(true);
 		const v = valuesFromPointer(e.clientX, e.clientY);
 		onChange(v.brightness, v.colorTemp);
@@ -82,6 +88,13 @@ export default function LightPad({
 		setDragging(false);
 		const v = valuesFromPointer(e.clientX, e.clientY);
 		onCommit?.(v.brightness, v.colorTemp);
+	};
+
+	const handlePointerCancel = () => {
+		if (!dragging) return;
+		setDragging(false);
+		// Systemet tok over gesten (f.eks. hjem-sveip): rull tilbake, ikke send.
+		onChange(startRef.current.brightness, startRef.current.colorTemp);
 	};
 
 	const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -112,7 +125,7 @@ export default function LightPad({
 			onPointerDown={handlePointerDown}
 			onPointerMove={handlePointerMove}
 			onPointerUp={handlePointerUp}
-			onPointerCancel={handlePointerUp}
+			onPointerCancel={handlePointerCancel}
 			onKeyDown={handleKeyDown}
 			className={`relative rounded-xl border border-border bg-surface/40 touch-none transition-colors ${
 				disabled ? "opacity-30" : "cursor-pointer"

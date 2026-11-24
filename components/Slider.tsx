@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+import { startsInSystemGestureZone } from "@/lib/pointerGuard";
 
 function clamp(v: number, min: number, max: number): number {
 	return Math.min(max, Math.max(min, v));
@@ -35,6 +36,8 @@ export default function Slider({
 }: SliderProps) {
 	const trackRef = useRef<HTMLDivElement>(null);
 	const [dragging, setDragging] = useState(false);
+	// Verdien da dra-bevegelsen startet, så vi kan rulle tilbake ved avbrudd.
+	const startRef = useRef(value);
 
 	const pct = ((value - min) / (max - min)) * 100;
 
@@ -52,7 +55,10 @@ export default function Slider({
 
 	const handlePointerDown = (e: React.PointerEvent) => {
 		if (disabled) return;
+		// Sveip opp fra bunnkanten (gå ut av appen) skal ikke endre lyset.
+		if (startsInSystemGestureZone(e)) return;
 		(e.target as HTMLElement).setPointerCapture(e.pointerId);
+		startRef.current = value;
 		setDragging(true);
 		onChange(valueFromPointer(e.clientX));
 	};
@@ -64,6 +70,13 @@ export default function Slider({
 		if (!dragging) return;
 		setDragging(false);
 		onCommit?.(valueFromPointer(e.clientX));
+	};
+
+	const handlePointerCancel = () => {
+		if (!dragging) return;
+		setDragging(false);
+		// Systemet tok over gesten (f.eks. hjem-sveip): rull tilbake, ikke send.
+		onChange(startRef.current);
 	};
 
 	const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -92,7 +105,7 @@ export default function Slider({
 			onPointerDown={handlePointerDown}
 			onPointerMove={handlePointerMove}
 			onPointerUp={handlePointerUp}
-			onPointerCancel={handlePointerUp}
+			onPointerCancel={handlePointerCancel}
 			onKeyDown={handleKeyDown}
 			className={`relative h-10 rounded-full border border-border bg-surface-2/50 touch-none overflow-hidden transition-colors ${
 				disabled ? "opacity-30" : "cursor-pointer hover:bg-surface-2/80"
