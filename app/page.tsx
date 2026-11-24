@@ -44,20 +44,26 @@ export default function Page() {
 
 			{/* Bottom row: Bus + Home control + News/Prices */}
 			<div className="flex flex-col sm:grid sm:grid-cols-[minmax(140px,0.9fr)_1px_minmax(160px,1fr)_1px_minmax(160px,1fr)] gap-4 md:gap-6 sm:flex-1 sm:min-h-0">
-				<div className="min-w-0 overflow-hidden flex flex-col gap-4 lg:gap-6">
+				{/* På mobil (max-sm:contents) blir barna her egne elementer i den
+				    ytre kolonnen, slik at Avganger + Bysykkel kan flyttes nederst
+				    på kvelden (se config.layout.evening). */}
+				<div className="min-w-0 overflow-hidden flex flex-col gap-4 lg:gap-6 max-sm:contents">
 					<ErrorBoundary label="Forslag">
 						<SmartScenes />
 					</ErrorBoundary>
-					<ErrorBoundary label="Buss">
-						<BusDepartures />
-					</ErrorBoundary>
-					<div className="border-t border-border" />
-					<ErrorBoundary label="Bysykkel">
-						<CityBike />
-					</ErrorBoundary>
+					<div className="flex flex-col gap-4 lg:gap-6 max-sm:evening:order-last">
+						<div className="hidden max-sm:evening:block border-t border-border" />
+						<ErrorBoundary label="Buss">
+							<BusDepartures />
+						</ErrorBoundary>
+						<div className="border-t border-border" />
+						<ErrorBoundary label="Bysykkel">
+							<CityBike />
+						</ErrorBoundary>
+					</div>
 				</div>
 
-				<div className="border-t border-border sm:border-t-0 sm:bg-border" />
+				<div className="border-t border-border sm:border-t-0 sm:bg-border max-sm:evening:hidden" />
 
 				<div className="min-w-0 overflow-hidden flex flex-col gap-4 lg:gap-6">
 					<ErrorBoundary label="Scener">

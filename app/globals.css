@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Aktiv når <html data-evening> er satt (se components/EveningMode.tsx). */
+@custom-variant evening (&:where([data-evening], [data-evening] *));
+
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);

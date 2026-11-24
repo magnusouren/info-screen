@@ -1,17 +1,8 @@
 import { config } from "@/lib/config";
 import type { Scene } from "@/lib/types/scenes";
+import { inWindow, toMinutes } from "@/lib/timeWindow";
 
 const MAX_SUGGESTIONS = 2;
-
-function toMinutes(hhmm: string): number {
-  const [h, m] = hhmm.split(":").map(Number);
-  return h * 60 + m;
-}
-
-function inWindow(now: number, from: number, to: number): boolean {
-  // Vinduer som går over midnatt (f.eks. 22:00–02:00)
-  return from <= to ? now >= from && now < to : now >= from || now < to;
-}
 
 /** Foreslår opptil to scener basert på ukedag og klokkeslett. */
 export function suggestScenes(scenes: Scene[], date: Date): Scene[] {

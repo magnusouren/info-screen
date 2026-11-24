@@ -3,6 +3,7 @@ import { Geist } from "next/font/google";
 import "./globals.css";
 import WakeLock from "@/components/WakeLock";
 import ThemeToggle from "@/components/ThemeToggle";
+import EveningMode, { eveningBootstrap } from "@/components/EveningMode";
 import { STORAGE_KEY, THEMES, DEFAULT_THEME } from "@/lib/theme";
 
 const geist = Geist({ subsets: ["latin"] });
@@ -49,12 +50,14 @@ export default function RootLayout({
     <html lang="no" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeBootstrap }} />
+        <script dangerouslySetInnerHTML={{ __html: eveningBootstrap }} />
       </head>
       <body
         className={`${geist.className} bg-bg text-text antialiased`}
         suppressHydrationWarning
       >
         <WakeLock />
+        <EveningMode />
         {children}
         <ThemeToggle />
       </body>

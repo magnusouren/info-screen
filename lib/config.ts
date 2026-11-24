@@ -9,6 +9,12 @@ export const config = {
         name: 'Sofienberg',
     },
 
+    // Kveldsoppsett på mobil: i dette tidsvinduet flyttes Scener og Lys over
+    // Avganger og Bysykkel. Vinduet kan gå over midnatt; `to` er eksklusiv.
+    layout: {
+        evening: { from: '18:00', to: '05:00' },
+    },
+
     // Busstopp fra Entur (NSR-format)
     // Finn din stopp-ID på: https://stoppested.entur.org/
     // Legg til flere objekter for å vise flere stopp.
