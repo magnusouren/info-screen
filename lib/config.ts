@@ -56,15 +56,15 @@ export const config = {
         // Valgfri mapping fra scene-navn (slik det er skrevet i SmartThings-appen)
         // til ikon i UI-et. Scener uten mapping her får standardikonet.
         sceneIcons: {
-            'Se på TV': 'filmreel',
-            'God natt': 'moonstars',
-            'God morgen': 'lightbulb',
-            'Legge seg': 'moonstars',
+            'God natt': 'moon',
+            'God morgen': 'sun',
             Borte: 'power',
+            Dag: 'house',
+            Dempet: 'sundim',
             'Alt på': 'lightbulb',
-            'Rolig belysning': 'lightbulb',
-            Kveldsbelysning: 'moonstars',
-            Hjemme: 'power',
+            TV: 'television',
+            Leggetid: 'moonstars',
+            Kveld: 'sunhorizon',
         } as Record<string, string>,
 
         // Mapping fra SmartThings sin roomId til visningsnavn for lys-siden.
@@ -94,9 +94,9 @@ export const config = {
         // (f.eks. 22:00–02:00); `to` er eksklusiv.
         suggestions: [
             { days: [1, 2, 3, 4, 5, 6, 7], from: '05:00', to: '11:00', scenes: ['God morgen', 'Borte'] },
-            { days: [1, 2, 3, 4, 5, 6, 7], from: '11:00', to: '15:00', scenes: ['Hjemme', 'Borte'] },
-            { days: [1, 2, 3, 4, 5, 6, 7], from: '15:00', to: '21:00', scenes: ['Rolig belysning', 'Kveldsbelysning'] },
-            { days: [1, 2, 3, 4, 5, 6, 7], from: '21:00', to: '00:00', scenes: ['God natt', 'Legge seg'] },
+            { days: [1, 2, 3, 4, 5, 6, 7], from: '11:00', to: '15:00', scenes: ['Dag', 'Borte'] },
+            { days: [1, 2, 3, 4, 5, 6, 7], from: '15:00', to: '21:00', scenes: ['Kveld', 'Dempet'] },
+            { days: [1, 2, 3, 4, 5, 6, 7], from: '21:00', to: '00:00', scenes: ['Leggetid', 'God natt'] },
             { days: [1, 2, 3, 4, 5, 6, 7], from: '00:00', to: '05:00', scenes: ['God natt', 'God morgen'] },
         ] as { days: number[]; from: string; to: string; scenes: string[] }[],
     },

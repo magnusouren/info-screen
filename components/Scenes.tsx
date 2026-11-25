@@ -7,6 +7,12 @@ import {
   FilmReelIcon as FilmReel,
   BroomIcon as Broom,
   ForkKnifeIcon as ForkKnife,
+  MoonIcon as Moon,
+  SunIcon as Sun,
+  SunDimIcon as SunDim,
+  SunHorizonIcon as SunHorizon,
+  HouseIcon as House,
+  TelevisionIcon as Television,
   CircleNotchIcon as CircleNotch,
   CheckIcon as Check,
   XIcon as X,
@@ -25,6 +31,12 @@ export const SCENE_ICONS: Record<
   filmreel: FilmReel,
   broom: Broom,
   forkknife: ForkKnife,
+  moon: Moon,
+  sun: Sun,
+  sundim: SunDim,
+  sunhorizon: SunHorizon,
+  house: House,
+  television: Television,
 };
 
 /** Sceneikonet, byttet ut med spinner / hake / kryss etter status. */

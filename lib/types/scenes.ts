@@ -4,7 +4,13 @@ export type SceneIcon =
   | "moonstars"
   | "filmreel"
   | "broom"
-  | "forkknife";
+  | "forkknife"
+  | "moon"
+  | "sun"
+  | "sundim"
+  | "sunhorizon"
+  | "house"
+  | "television";
 
 export interface Scene {
   id: string;
