@@ -87,6 +87,11 @@ export const config = {
             'Tak Kjøkken': ['Tak Kjøkken 1', 'Tak Kjøkken 2', 'Tak Kjøkken 3'],
         } as Record<string, string[]>,
 
+        // Lyskontrollen på hovedskjermen: 'card' = samme lyskort som i
+        // lys-modalen (lysstyrke-slider + faste fargetemperaturer) for alle lys,
+        // 'pad' = den gamle 2D-flaten (x = fargetemperatur, y = lysstyrke).
+        quickControl: 'card' as 'card' | 'pad',
+
         // "Smarte" scene-forslag som vises øverst på mobil. Første regel som
         // matcher nåværende ukedag og klokkeslett vinner, og de første (maks to)
         // scenene i lista som faktisk finnes i SmartThings vises.

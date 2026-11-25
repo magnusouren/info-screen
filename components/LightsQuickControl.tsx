@@ -3,8 +3,10 @@
 import { LightbulbIcon as Lightbulb } from "@phosphor-icons/react";
 import { useState } from "react";
 import { averageOf, brightnessFill, kelvinFill, kelvinGradient } from "@/lib/colorUtils";
+import { config } from "@/lib/config";
 import { useLights } from "@/lib/useLights";
 import LightPad from "./LightPad";
+import { LightTileShell } from "./LightTile";
 import LightsModal from "./LightsModal";
 import Skeleton from "./Skeleton";
 import Slider from "./Slider";
@@ -49,6 +51,14 @@ export default function LightsQuickControl() {
 		setTemp(liveTempAvg);
 	}
 
+	const controllableLights = controllableRooms.flatMap((r) => r.lights);
+	const anyOn = controllableLights.some((l) => l.switch === "on");
+	const toggleAll = () => {
+		for (const light of controllableLights) {
+			setLight(light.id, { switch: anyOn ? "off" : "on" });
+		}
+	};
+
 	const applyMaster = (next: number) => {
 		for (const light of dimmableLights) {
 			setLight(light.id, { switch: "on", level: next });
@@ -68,7 +78,11 @@ export default function LightsQuickControl() {
 					<Lightbulb size={13} weight="light" />
 					Lys
 				</div>
-				<Skeleton className="w-full flex-1 min-h-0 max-sm:aspect-square max-sm:flex-none mt-4" />
+				{config.smartThings.quickControl === "card" ? (
+					<Skeleton className="w-full h-40 rounded-2xl mt-2" />
+				) : (
+					<Skeleton className="w-full flex-1 min-h-0 max-sm:aspect-square max-sm:flex-none mt-4" />
+				)}
 			</div>
 		);
 	}
@@ -85,7 +99,27 @@ export default function LightsQuickControl() {
 					Lys
 				</button>
 
-				{dimmableLights.length > 0 && tunableLights.length > 0 ? (
+				{config.smartThings.quickControl === "card" ? (
+					controllableLights.length > 0 && (
+						<div className="mt-2">
+							<LightTileShell
+								label="Alle lys"
+								on={anyOn}
+								onToggle={toggleAll}
+								dimmable={dimmableLights.length > 0}
+								level={master}
+								onLevelChange={setMaster}
+								onLevelCommit={applyMaster}
+								tunable={tunableLights.length > 0}
+								temp={temp}
+								onTempCommit={(next) => {
+									setTemp(next);
+									applyTemp(next);
+								}}
+							/>
+						</div>
+					)
+				) : dimmableLights.length > 0 && tunableLights.length > 0 ? (
 					<LightPad
 						brightness={master}
 						colorTemp={temp}
