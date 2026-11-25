@@ -15,7 +15,8 @@ const DEFAULT_KELVIN = 4000;
 const KELVIN_PRESETS: { kelvin: number; name: string }[] = [
   { kelvin: 2200, name: "Stearinlys" },
   { kelvin: 2700, name: "Varm hvit" },
-  { kelvin: 3500, name: "Nøytral hvit" },
+  { kelvin: 3200, name: "Myk hvit" },
+  { kelvin: 4000, name: "Nøytral hvit" },
   { kelvin: 5000, name: "Dagslys" },
   { kelvin: 6500, name: "Kald hvit" },
 ];
@@ -32,7 +33,7 @@ function activePreset(temp: number): number | null {
       bestDist = d;
     }
   }
-  return bestDist <= 250 ? best : null;
+  return bestDist <= 200 ? best : null;
 }
 
 type LightPatch = { switch?: "on" | "off"; level?: number; colorTemperature?: number };
