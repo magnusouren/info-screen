@@ -122,7 +122,7 @@ export default function LightsQuickControl() {
 										onClick={() => setOpen(true)}
 										className="flex items-center gap-1 shrink-0 rounded-full border border-border bg-surface-2 pl-3 pr-2 py-1.5 text-xs text-text-2 hover:text-text active:scale-95 transition-[color,transform]"
 									>
-										Alle rom
+										Rom
 										<CaretRight size={12} weight="bold" />
 									</button>
 								}
