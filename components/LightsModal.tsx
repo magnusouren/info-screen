@@ -40,6 +40,9 @@ function RoomHeader({
   }
 
   const anyOn = lights.some((l) => l.switch === "on");
+  // Everything off → empty slider; while dragging from off, follow the drag.
+  const [offPreview, setOffPreview] = useState<number | null>(null);
+  const shownLevel = anyOn ? level : (offPreview ?? 1);
   const toggleAll = () => {
     for (const l of lights) onChange(l.id, { switch: anyOn ? "off" : "on" });
   };
@@ -64,15 +67,19 @@ function RoomHeader({
 
       {dimmable.length > 1 && (
         <Slider
-          value={level}
+          value={shownLevel}
           min={1}
           max={100}
-          onChange={setLevel}
+          onChange={(v) => {
+            if (!anyOn) setOffPreview(v);
+            setLevel(v);
+          }}
           onCommit={(next) => {
+            setOffPreview(null);
             for (const l of dimmable) onChange(l.id, { switch: "on", level: next });
           }}
           ariaLabel={`Dimme alle lys i ${name}`}
-          indicatorColor={brightnessFill(level)}
+          indicatorColor={brightnessFill(shownLevel)}
           className="flex-1 sm:max-w-40 ml-auto"
         />
       )}

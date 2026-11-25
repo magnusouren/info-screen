@@ -70,6 +70,10 @@ export function LightTileShell({
   corner?: ReactNode;
 }) {
   const active = on ? activePreset(temp) : null;
+  // An off light shows an empty slider. While dragging it from off, show the
+  // drag position; the commit turns the light on and the real level takes over.
+  const [offPreview, setOffPreview] = useState<number | null>(null);
+  const shownLevel = on ? level : (offPreview ?? 1);
   const status = !on ? "Av" : dimmable ? `${level} %` : "På";
 
   return (
@@ -102,13 +106,19 @@ export function LightTileShell({
 
       {dimmable && (
         <Slider
-          value={level}
+          value={shownLevel}
           min={1}
           max={100}
-          onChange={onLevelChange}
-          onCommit={onLevelCommit}
+          onChange={(v) => {
+            if (!on) setOffPreview(v);
+            onLevelChange(v);
+          }}
+          onCommit={(v) => {
+            setOffPreview(null);
+            onLevelCommit(v);
+          }}
           ariaLabel={`Lysstyrke for ${label}`}
-          indicatorColor={brightnessFill(on ? level : 0)}
+          indicatorColor={brightnessFill(shownLevel)}
           className={`w-full ${compact ? "h-8!" : ""}`}
         />
       )}
