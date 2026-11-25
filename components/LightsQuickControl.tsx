@@ -1,6 +1,6 @@
 "use client";
 
-import { LightbulbIcon as Lightbulb } from "@phosphor-icons/react";
+import { CaretRightIcon as CaretRight, LightbulbIcon as Lightbulb } from "@phosphor-icons/react";
 import { useState } from "react";
 import { averageOf, brightnessFill, kelvinFill, kelvinGradient } from "@/lib/colorUtils";
 import { config } from "@/lib/config";
@@ -116,6 +116,16 @@ export default function LightsQuickControl() {
 									setTemp(next);
 									applyTemp(next);
 								}}
+								corner={
+									<button
+										type="button"
+										onClick={() => setOpen(true)}
+										className="flex items-center gap-1 shrink-0 rounded-full border border-border bg-surface-2 pl-3 pr-2 py-1.5 text-xs text-text-2 hover:text-text active:scale-95 transition-[color,transform]"
+									>
+										Enkeltlys
+										<CaretRight size={12} weight="bold" />
+									</button>
+								}
 							/>
 						</div>
 					)
