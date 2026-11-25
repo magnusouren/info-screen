@@ -2,20 +2,46 @@
 
 import { useState, type ReactNode } from "react";
 import { LightbulbIcon as Lightbulb } from "@phosphor-icons/react";
-import { brightnessFill, kelvinFill, kelvinGradient } from "@/lib/colorUtils";
+import { brightnessFill, kelvinFill } from "@/lib/colorUtils";
 import type { Light } from "@/lib/types/lights";
 import Slider from "./Slider";
-import VerticalSlider from "./VerticalSlider";
 
 const MIN_KELVIN = 2200;
 const MAX_KELVIN = 6500;
 const DEFAULT_KELVIN = 4000;
 
+/** Fixed color-temperature presets shown as swatches under the brightness
+ *  slider — one tap instead of fine-tuning a second slider. */
+const KELVIN_PRESETS: { kelvin: number; name: string }[] = [
+  { kelvin: 2200, name: "Stearinlys" },
+  { kelvin: 2700, name: "Varm hvit" },
+  { kelvin: 3500, name: "Nøytral hvit" },
+  { kelvin: 5000, name: "Dagslys" },
+  { kelvin: 6500, name: "Kald hvit" },
+];
+
+/** The preset a measured temperature counts as — devices report arbitrary
+ *  values (e.g. 2732K), so snap to the nearest swatch within a tolerance. */
+function activePreset(temp: number): number | null {
+  let best: number | null = null;
+  let bestDist = Infinity;
+  for (const p of KELVIN_PRESETS) {
+    const d = Math.abs(p.kelvin - temp);
+    if (d < bestDist) {
+      best = p.kelvin;
+      bestDist = d;
+    }
+  }
+  return bestDist <= 250 ? best : null;
+}
+
 type LightPatch = { switch?: "on" | "off"; level?: number; colorTemperature?: number };
 
-/** Shared "channel strip" visual: power toggle, one or two vertical faders
- *  (brightness + color temperature), and a label — used by both a single
- *  light tile and a collapsed group tile so they read as the same control. */
+/** Shared light card: power button + label/status on top, a full-width
+ *  brightness slider, and a row of color-temperature swatches — used by both
+ *  a single light and a collapsed group so they read as the same control.
+ *  The slider and swatches stay usable while the light is off: dragging or
+ *  picking a swatch is also how you turn it on. */
 export function LightTileShell({
   label,
   on,
@@ -26,13 +52,8 @@ export function LightTileShell({
   onLevelCommit,
   tunable,
   temp,
-  onTempChange,
   onTempCommit,
   compact = false,
-  /** Overrides the default "disabled while off" rule for the faders — a
-   *  group/room aggregate stays draggable even when everything in it is off,
-   *  since dragging it is how you turn the group on. */
-  sliderDisabled,
   corner,
 }: {
   label: string;
@@ -44,130 +65,85 @@ export function LightTileShell({
   onLevelCommit: (v: number) => void;
   tunable: boolean;
   temp: number;
-  onTempChange: (v: number) => void;
   onTempCommit: (v: number) => void;
   compact?: boolean;
-  sliderDisabled?: boolean;
   corner?: ReactNode;
 }) {
-  const height = compact ? "h-24" : "h-32";
-  const disabled = sliderDisabled ?? !on;
-
-  const powerButton = (
-    <button
-      type="button"
-      onClick={onToggle}
-      aria-pressed={on}
-      aria-label={`Slå ${on ? "av" : "på"} ${label}`}
-      className={`flex items-center justify-center rounded-full border shrink-0 transition-colors ${
-        compact ? "w-7 h-7" : "w-8 h-8"
-      } ${on ? "bg-accent/20 border-accent text-accent" : "bg-surface border-border text-text-4"}`}
-    >
-      <Lightbulb size={compact ? 13 : 15} weight={on ? "fill" : "light"} />
-    </button>
-  );
+  const active = on ? activePreset(temp) : null;
+  const status = !on ? "Av" : dimmable ? `${level} %` : "På";
 
   return (
-    <>
-      {/* Mobile: label row on top, full-width horizontal slider(s) below —
-       *  gives the slider the whole row to drag along instead of squeezing
-       *  it between a label and a readout on a narrow touchscreen. */}
-      <div className="flex sm:hidden flex-col gap-1.5 w-full">
-        <div className="flex items-center gap-2">
-          {powerButton}
-          <div className="flex-1 text-text-2 font-light text-sm truncate">{label}</div>
-          <div className="shrink-0 text-[11px] text-text-4 tabular-nums">
-            {dimmable ? (on ? `${level}%` : "–") : ""}
+    <div
+      className={`flex flex-col rounded-2xl border border-border bg-surface/60 w-full ${
+        compact ? "gap-2.5 p-3" : "gap-3 p-4"
+      }`}
+    >
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-pressed={on}
+          aria-label={`Slå ${on ? "av" : "på"} ${label}`}
+          className={`flex items-center justify-center rounded-full border shrink-0 transition-colors ${
+            compact ? "w-9 h-9" : "w-11 h-11"
+          } ${on ? "bg-accent/20 border-accent text-accent" : "bg-surface-2 border-border text-text-4"}`}
+        >
+          <Lightbulb size={compact ? 16 : 20} weight={on ? "fill" : "light"} />
+        </button>
+        <div className="flex-1 min-w-0">
+          <div className={`text-text-2 truncate ${compact ? "text-sm" : "text-base"}`}>{label}</div>
+          <div className="text-xs text-text-4 tabular-nums">
+            {status}
+            {on && tunable && <span className="text-text-5"> · {temp}K</span>}
           </div>
-          {corner}
         </div>
+        {corner}
+      </div>
 
-        <div className="flex flex-col gap-2 pl-10">
-          {dimmable && (
-            <Slider
-              value={level}
-              min={1}
-              max={100}
-              disabled={disabled}
-              onChange={onLevelChange}
-              onCommit={onLevelCommit}
-              ariaLabel={`Lysstyrke for ${label}`}
-              indicatorColor={brightnessFill(level)}
-              className="w-full"
-            />
-          )}
-          {tunable && (
-            <Slider
-              value={temp}
-              min={MIN_KELVIN}
-              max={MAX_KELVIN}
-              step={100}
-              disabled={disabled}
-              onChange={onTempChange}
-              onCommit={onTempCommit}
-              ariaLabel={`Fargetemperatur for ${label}`}
-              indicatorColor={kelvinFill(temp, MIN_KELVIN, MAX_KELVIN)}
-              className="w-full"
-            />
-          )}
+      {dimmable && (
+        <Slider
+          value={level}
+          min={1}
+          max={100}
+          onChange={onLevelChange}
+          onCommit={onLevelCommit}
+          ariaLabel={`Lysstyrke for ${label}`}
+          indicatorColor={brightnessFill(on ? level : 0)}
+          className={`w-full ${compact ? "h-8!" : ""}`}
+        />
+      )}
+
+      {tunable && (
+        <div
+          role="radiogroup"
+          aria-label={`Fargetemperatur for ${label}`}
+          className="flex items-center justify-between gap-1.5"
+        >
+          {KELVIN_PRESETS.map((p) => {
+            const selected = active === p.kelvin;
+            return (
+              <button
+                key={p.kelvin}
+                type="button"
+                role="radio"
+                aria-checked={selected}
+                aria-label={`${p.name} (${p.kelvin}K)`}
+                title={`${p.name} · ${p.kelvin}K`}
+                onClick={() => onTempCommit(p.kelvin)}
+                className={`rounded-full shrink-0 transition-[transform,box-shadow] active:scale-90 ${
+                  compact ? "w-7 h-7" : "w-9 h-9"
+                } ${
+                  selected
+                    ? "ring-2 ring-offset-2 ring-offset-surface ring-text-2"
+                    : "shadow-[inset_0_0_0_1px_rgba(0,0,0,0.15)]"
+                } ${on ? "" : "opacity-60"}`}
+                style={{ backgroundColor: kelvinFill(p.kelvin, MIN_KELVIN, MAX_KELVIN) }}
+              />
+            );
+          })}
         </div>
-      </div>
-
-      {/* Desktop: a vertical "channel strip" fader — reads as a mixing-console
-       *  panel when several sit side by side in a room's tile grid. */}
-      <div className={`hidden sm:flex relative flex-col items-center gap-2 ${compact ? "w-16" : "w-20"} shrink-0`}>
-      <div className="relative">
-        {corner && <div className="absolute -top-1.5 -right-1.5 z-10">{corner}</div>}
-        {powerButton}
-      </div>
-
-      <div className="text-[10px] text-text-4 tabular-nums h-3.5 leading-none">
-        {dimmable ? (on ? `${level}%` : "–") : " "}
-      </div>
-
-      <div className={`flex items-end gap-2 ${height}`}>
-        {dimmable && (
-          <VerticalSlider
-            value={level}
-            min={1}
-            max={100}
-            disabled={disabled}
-            onChange={onLevelChange}
-            onCommit={onLevelCommit}
-            ariaLabel={`Lysstyrke for ${label}`}
-            fillColor={brightnessFill(level)}
-            formatValue={(v) => `${v}%`}
-            className={`${compact ? "w-8" : "w-10"} ${height}`}
-          />
-        )}
-        {tunable && (
-          <VerticalSlider
-            value={temp}
-            min={MIN_KELVIN}
-            max={MAX_KELVIN}
-            step={100}
-            disabled={disabled}
-            mode="position"
-            trackBackground={kelvinGradient("to top")}
-            thumbColor={kelvinFill(temp, MIN_KELVIN, MAX_KELVIN)}
-            onChange={onTempChange}
-            onCommit={onTempCommit}
-            ariaLabel={`Fargetemperatur for ${label}`}
-            formatValue={(v) => `${v}K`}
-            className={`${compact ? "w-4" : "w-5"} ${height}`}
-          />
-        )}
-      </div>
-
-      <div
-        className={`text-text-2 font-light text-center leading-tight line-clamp-2 ${
-          compact ? "text-[10px]" : "text-[11px]"
-        }`}
-      >
-        {label}
-      </div>
-      </div>
-    </>
+      )}
+    </div>
   );
 }
 
@@ -207,8 +183,10 @@ export default function LightTile({
       onLevelCommit={(next) => onChange(light.id, { switch: "on", level: next })}
       tunable={light.colorTemperature !== null}
       temp={temp}
-      onTempChange={setTemp}
-      onTempCommit={(next) => onChange(light.id, { switch: "on", colorTemperature: next })}
+      onTempCommit={(next) => {
+        setTemp(next);
+        onChange(light.id, { switch: "on", colorTemperature: next });
+      }}
       compact={compact}
     />
   );

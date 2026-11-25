@@ -99,7 +99,7 @@ function RoomSection({
         <div className="text-xs text-text-3 uppercase tracking-widest mb-3">{name}</div>
       )}
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-x-4 sm:gap-y-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 items-start gap-3">
         {items.map((item) =>
           item.kind === "single" ? (
             <LightTile key={item.light.id} light={item.light} onChange={onChange} />
@@ -161,9 +161,9 @@ export default function LightsModal({ onClose }: { onClose: () => void }) {
                   {[0, 1].map((g) => (
                     <div key={g}>
                       <Skeleton className="h-2.5 w-16 mb-3" />
-                      <div className="flex gap-4">
-                        {[0, 1, 2].map((i) => (
-                          <Skeleton key={i} className="w-20 h-44 rounded-2xl" />
+                      <div className="grid grid-cols-1 sm:grid-cols-2 items-start gap-3">
+                        {[0, 1].map((i) => (
+                          <Skeleton key={i} className="h-40 rounded-2xl" />
                         ))}
                       </div>
                     </div>

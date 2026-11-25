@@ -61,7 +61,7 @@ export default function GroupTile({
 
   if (!expanded) {
     return (
-      <div className="relative isolate">
+      <div className="relative isolate mr-2 mb-2">
         <div className="absolute inset-0 translate-x-2 translate-y-2 rounded-2xl border border-border/40 bg-surface/30 -z-10" />
         <div className="absolute inset-0 translate-x-1 translate-y-1 rounded-2xl border border-border/60 bg-surface/50 -z-10" />
         <LightTileShell
@@ -78,11 +78,10 @@ export default function GroupTile({
           }}
           tunable={tunable.length > 0}
           temp={temp}
-          onTempChange={setTemp}
           onTempCommit={(next) => {
+            setTemp(next);
             for (const l of tunable) onChange(l.id, { switch: "on", colorTemperature: next });
           }}
-          sliderDisabled={false}
           corner={expandButton}
         />
       </div>
@@ -90,12 +89,12 @@ export default function GroupTile({
   }
 
   return (
-    <div className="rounded-2xl border border-border/60 bg-surface/30 p-3 flex flex-col gap-3">
+    <div className="rounded-2xl border border-border/60 bg-surface/30 p-3 flex flex-col gap-3 sm:col-span-2">
       <div className="flex items-center justify-between gap-3">
         <span className="text-[11px] text-text-3 uppercase tracking-wide">{name}</span>
         {expandButton}
       </div>
-      <div className="flex flex-col gap-1.5 sm:flex-row sm:gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 items-start gap-2">
         {lights.map((l) => (
           <LightTile key={l.id} light={l} onChange={onChange} compact />
         ))}
