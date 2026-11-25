@@ -20,3 +20,8 @@ export const smartThingsRedirectUri =
 // (f.eks. på Vercel). Sett en egen verdi i .env.local / Vercel sine
 // miljøvariabler — se proxy.ts og app/login.
 export const dashboardPassword = process.env.DASHBOARD_PASSWORD ?? "";
+
+// Hemmelig token for iOS Snarveier (og andre skript) som kaller
+// /api/shortcuts/* uten innloggings-cookie. Sendes som
+// «Authorization: Bearer <token>». Står den tom, er endepunktene avslått.
+export const shortcutsToken = process.env.SHORTCUTS_TOKEN ?? "";

@@ -7,7 +7,8 @@ const PUBLIC_PATHS = ["/login", "/api/login"];
 export default function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (PUBLIC_PATHS.includes(pathname)) {
+  // Snarvei-endepunktene sjekker sitt eget Bearer-token (se lib/auth.ts).
+  if (PUBLIC_PATHS.includes(pathname) || pathname.startsWith("/api/shortcuts/")) {
     return NextResponse.next();
   }
 

@@ -1,36 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { config } from "@/lib/config";
-import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
 import { getAccessToken } from "@/lib/smartthingsAuth";
-import type { Scene, SceneIcon, ScenesData } from "@/lib/types/scenes";
+import { executeScene, fetchScenes } from "@/lib/smartthingsScenes";
+import type { Scene, ScenesData } from "@/lib/types/scenes";
 
-const API_BASE = "https://api.smartthings.com/v1";
-const DEFAULT_ICON: SceneIcon = "power";
 const CACHE_TTL = 60 * 1000;
 const CONNECT_URL = "/api/smartthings/authorize";
 
-function toIcon(name: string): SceneIcon {
-  const mapped = config.smartThings.sceneIcons[name];
-  return (mapped as SceneIcon | undefined) ?? DEFAULT_ICON;
-}
-
 let cachedScenes: { scenes: Scene[]; at: number } | null = null;
-
-async function fetchScenes(token: string): Promise<Scene[]> {
-  const res = await fetchWithTimeout(`${API_BASE}/scenes`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error(`SmartThings svarte ${res.status}`);
-  const json = (await res.json()) as {
-    items?: { sceneId: string; sceneName: string }[];
-  };
-  return (json.items ?? []).map((item) => ({
-    id: item.sceneId,
-    name: item.sceneName,
-    icon: toIcon(item.sceneName),
-  }));
-}
 
 export async function GET() {
   const token = await getAccessToken();
@@ -79,11 +55,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const res = await fetchWithTimeout(`${API_BASE}/scenes/${id}/execute`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!res.ok) throw new Error();
+    await executeScene(token, id);
   } catch {
     return NextResponse.json(
       { error: "Kunne ikke aktivere scenen" },

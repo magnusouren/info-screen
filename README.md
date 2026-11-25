@@ -34,3 +34,24 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Snarveier (iOS Shortcuts)
+
+Scener kan kjøres fra iOS Snarveier, Siri, handlingsknappen eller NFC via
+`/api/shortcuts/scenes`. Endepunktet bruker ikke innloggings-cookien, men et
+eget token.
+
+1. Lag et tilfeldig token, f.eks. `openssl rand -hex 32`, og sett det som
+   miljøvariabelen `SHORTCUTS_TOKEN` (i Vercel og/eller `.env.local`).
+   Uten token er endepunktet avslått.
+2. I Snarveier: legg til handlingen **Hent innhold i URL** (Get Contents of URL):
+   - URL: `https://<domenet>/api/shortcuts/scenes`
+   - Metode: `POST`
+   - Overskrifter: `Authorization` = `Bearer <token>`
+   - Forespørselstekst: JSON, `name` = scenenavnet, f.eks. `Kveld`
+3. `GET` med samme overskrift gir en liste over alle scenenavn — nyttig sammen
+   med **Velg fra liste** for én snarvei som kan kjøre hvilken som helst scene.
+
+Svaret er `{ "ok": true, "scene": "Kveld" }`, eller `{ "ok": false, "error": "…" }`
+med feilmelding (f.eks. ukjent scenenavn, med liste over gyldige navn).
+
